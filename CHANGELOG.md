@@ -11,6 +11,42 @@ re-stated here.
 
 ---
 
+## [2.0.2] — 2026-05-31
+
+Documentation overhaul of the consumer-facing `README.md`. No kernel, schema,
+or tooling changes — the framework `PROTOCOL_RULES.md` version stays at `2.0.0`.
+This release only restructures and clarifies how the protocol is presented to
+new users.
+
+### Changed
+
+- `README.md` opening rewritten for non-technical readers. The tagline is now
+  the plain-language analogy ("a shift-change logbook for your AI coding
+  assistants"); "The problem" opens with a concrete, relatable scenario instead
+  of a list of engineering verbs. Vendor/tooling jargon (mem0, LangGraph, the
+  agent-stack diagram) moved into collapsible `<details>` blocks labeled "For
+  developers" so beginners are not blocked while developers still find it.
+- `README.md` solution section now describes each state file by everyday use
+  (handoff = current state, decisions = why, lessons = mistakes not to repeat)
+  and embeds the folder-layout diagram immediately, so the product is visible
+  before the install instructions.
+- "Checking which version you have" now explains that `PROTOCOL_RULES.md` records
+  the **kernel** version (a floor, not the release number) — e.g. release
+  `2.0.1` ships kernel `2.0.0`. The installed release is the top entry of
+  `CHANGELOG.md`. (Partial pre-work for the documentation acceptance criterion
+  of #6; the verification tooling remains scoped to v2.1.0.)
+
+### Fixed
+
+- Removed an orphaned "Option 2" heading left over after the duplicate
+  `git clone` block was merged into Quick start (now "Alternative").
+- "Read the operational manual" link now points to `.agents/CORE_RULES.md`
+  (how agents use the protocol) instead of `.agents/modules/README.md` (a
+  narrower module index).
+- Collapsed the pre-`v1.8.0` version history into a `<details>` block rather
+  than moving it out, preserving the `CHANGELOG.md → README.md#version-history`
+  back-reference.
+
 ## [2.0.1] — 2026-04-23
 
 Bugfix patch from the first external consumer migration. No kernel
