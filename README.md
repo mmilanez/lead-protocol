@@ -1,6 +1,6 @@
 # Lead Protocol
 
-**Operational continuity protocol for AI agents** — vendor-agnostic, file-based, git-native.
+**Operational continuity protocol for AI agents** — vendor-agnostic, file-based, and easy to audit.
 
 > The missing layer between agent instructions (AGENTS.md) and agent memory (mem0).
 
@@ -28,7 +28,9 @@ Existing solutions solve adjacent problems:
 
 ## The solution
 
-Lead Protocol defines a set of structured files committed to your git repository — a per-pair `handoff.md` with a strict schema, an append-only `decisions.jsonl` audit trail, a curated `JOURNAL.md` timeline and queryable `LESSONS.md`, rules for takeover and recovery, a concurrent-session registry, and a three-layer separation (framework / project / actor × agent). Any agent that can read text files can use it. No runtime, no API, no vendor dependency.
+Lead Protocol defines a set of structured files committed to your project — a per-pair `handoff.md` with a strict schema, an append-only `decisions.jsonl` audit trail, a curated `JOURNAL.md` timeline and queryable `LESSONS.md`, rules for takeover and recovery, a concurrent-session registry, and a three-layer separation (framework / project / actor × agent). Any agent that can read text files can use it. No runtime, no API, no vendor dependency.
+
+This release is the file-based protocol scaffold. A CLI and MCP server are planned, but you do not need either one to use Lead Protocol today.
 
 ## Where it fits
 
@@ -63,6 +65,10 @@ cp    /tmp/lp/AGENTS.md  your-project/AGENTS.md
 
 # Set your project's identity
 $EDITOR your-project/.agents/PROJECT_RULES.md
+
+# Verify the scaffold state
+cd your-project
+python .agents/scripts/validate_state.py
 ```
 
 That's it. Read the [operational manual](.agents/modules/README.md) or the sections below to understand how agents use the protocol inside your project.
@@ -83,11 +89,15 @@ git clone --branch v2.0.1 --depth 1 https://github.com/mmilanez/lead-protocol.gi
 cp -R /tmp/lp/.agents   your-project/.agents
 cp    /tmp/lp/CLAUDE.md  your-project/CLAUDE.md
 cp    /tmp/lp/AGENTS.md  your-project/AGENTS.md
+cd your-project
+python .agents/scripts/validate_state.py
 ```
 
 ### Option 2 — download the release archive
 
 On the [Releases page](https://github.com/mmilanez/lead-protocol/releases), pick a version and download the `Source code (zip)` or `(tar.gz)` asset. Extract and copy the files into your project as shown in Quick start.
+
+For Windows PowerShell, use equivalent `Copy-Item` commands and run the same validator command from the target project root.
 
 ### Checking which version you have
 
@@ -138,7 +148,7 @@ your-project/
 └── AGENTS.md                            # Pointer for other agents
 ```
 
-Any agent that can read text files can work with the protocol. No runtime, no API, no vendor dependency.
+Any agent that can read text files can work with the protocol. No runtime, no API, no vendor dependency. The bundled Python scripts are only validation and migration helpers.
 
 ---
 

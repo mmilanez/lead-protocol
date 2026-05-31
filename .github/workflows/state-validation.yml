@@ -3,11 +3,6 @@ name: State validation
 on:
   pull_request:
     branches: [main]
-    paths:
-      - '.agents/decisions.jsonl'
-      - '.agents/schemas/**'
-      - '.agents/scripts/**'
-      - '.github/workflows/state-validation.yml'
 
 jobs:
   validate-state:
