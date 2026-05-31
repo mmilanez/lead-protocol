@@ -112,4 +112,4 @@ This is the recommended pattern for any team that wants to use Lead Protocol to 
 
 ## Questions?
 
-Open a [Discussion](https://github.com/mmilanez/lead-protocol/discussions) or an issue. We're happy to help you get started.
+Open an [issue](https://github.com/mmilanez/lead-protocol/issues). We're happy to help you get started.
