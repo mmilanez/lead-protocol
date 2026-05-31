@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mmilanez/lead-protocol/blob/main/.agents/schemas/decisions.entry.schema.json",
+  "title": "Lead Protocol decisions entry (one JSONL line)",
+  "description": "Canonical schema for a single decision entry in .agents/decisions.jsonl. The log format is JSON Lines (one object per line, no enclosing array). Append-only, immutable — never rewrite past lines. This schema describes one line; a valid file is a sequence of lines, each matching this schema.",
+  "type": "object",
+  "required": [
+    "timestamp",
+    "agent",
+    "decision",
+    "rationale",
+    "files_affected",
+    "status"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "timestamp": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})?$",
+      "description": "ISO-8601 timestamp. Seconds required; timezone optional (defaults to local)."
+    },
+    "agent": {
+      "type": "string",
+      "pattern": "^\\[.+\\]$",
+      "description": "Agent signature in square brackets — same format as handoff.last_agent. Human contributors use '[Human / <github-username>]' or '[Human / <name>]'."
+    },
+    "decision": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short imperative sentence describing the decision. Not the action taken — the decision that led to the action."
+    },
+    "rationale": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Why this decision was made. Should be self-contained — a future agent reading this entry alone should understand the motivation without needing the surrounding conversation."
+    },
+    "files_affected": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "description": "Relative paths of files modified as a direct consequence of this decision. Empty array is valid for pure-process decisions that touched no files.",
+      "uniqueItems": true
+    },
+    "status": {
+      "type": "string",
+      "enum": ["completed", "in_progress", "rolled_back", "superseded"],
+      "description": "completed = decision executed and still current. in_progress = work underway. rolled_back = decision was reversed by a later decision (which should cite this entry's timestamp in its rationale). superseded = a later decision replaced this one (same rationale-citation expectation)."
+    },
+    "supersedes": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Optional. Timestamp of a prior decision this one replaces. Used together with status='superseded' on the older entry when you append the replacement."
+    }
+  }
+}

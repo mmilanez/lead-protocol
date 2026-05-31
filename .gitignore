@@ -1,0 +1,14 @@
+# Lead Protocol — per-project .gitignore (template baseline)
+#
+# `.agents/local/` holds per-actor, per-agent state (handoff, tasks, activity log,
+# personal lessons). It is the volatile layer of the three-layer state model and
+# MUST NOT be committed — it is not shared between contributors, and committing
+# it leaks personal context while also creating spurious merge conflicts.
+#
+# Everything else under `.agents/` (framework files, JOURNAL, LESSONS,
+# decisions.jsonl, AGENTS_MAP, checkpoints, sessions) is shared project state
+# and remains tracked.
+.agents/local/
+__pycache__/
+.pytest_cache/
+*.pyc

@@ -1,0 +1,50 @@
+name: State validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.agents/decisions.jsonl'
+      - '.agents/schemas/**'
+      - '.agents/scripts/**'
+      - '.github/workflows/state-validation.yml'
+
+jobs:
+  validate-state:
+    name: State files
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install jsonschema
+        run: pip install jsonschema
+
+      - name: Validate state
+        run: |
+          python .agents/scripts/validate_state.py \
+            --schemas-dir .agents/schemas \
+            .agents/decisions.jsonl
+
+  validator-unit-tests:
+    name: Validator unit tests (pytest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out PR
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pytest and jsonschema
+        run: pip install pytest jsonschema
+
+      - name: Run validator unit tests
+        run: pytest .agents/scripts/ -v

@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/mmilanez/lead-protocol/blob/main/.agents/schemas/handoff.schema.json",
+  "title": "Lead Protocol handoff",
+  "description": "Canonical JSON representation of .agents/local/<actor>/<agent>/handoff.md. The markdown file is the source of truth for humans; this schema validates the parsed structure for tooling (CLI, pre-commit hooks, CI validators). Starting in Lead Protocol v2.0.0, each (actor, agent) pair has its own handoff.md under .agents/local/<actor>/<agent>/.",
+  "type": "object",
+  "required": [
+    "version",
+    "updated",
+    "last_agent",
+    "timestamp",
+    "status",
+    "last_action",
+    "pending_step",
+    "blockers_context",
+    "open_threads",
+    "session_close_checklist"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Handoff file version (X.Y or X.Y.Z). Independent from Protocol version."
+    },
+    "updated": {
+      "type": "string",
+      "format": "date",
+      "description": "Date of last update (YYYY-MM-DD)."
+    },
+    "last_agent": {
+      "type": "string",
+      "pattern": "^\\[.+\\]$",
+      "description": "Agent signature in square brackets, e.g. '[Claude Code / claude-opus-4-7]'. A pristine template may use '[Your Agent Signature]' as a placeholder — tooling must treat any value containing 'Your Agent Signature' as an uninitialized handoff."
+    },
+    "timestamp": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}$",
+      "description": "Session close timestamp in 'YYYY-MM-DD HH:MM' format. HH:MM is mandatory (not just the date) so takeover rules can compute elapsed minutes."
+    },
+    "status": {
+      "type": "string",
+      "enum": ["STABLE", "BLOCKED", "IN_PROGRESS"],
+      "description": "Three-state operational status. See §P3 for definitions."
+    },
+    "last_action": {
+      "type": "string",
+      "minLength": 1,
+      "description": "One-sentence description of what the last session accomplished."
+    },
+    "pending_step": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What the next agent should do. Use 'None' when the state is terminal/stable."
+    },
+    "blockers_context": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Current blockers or relevant context. Use 'None' when there are no blockers."
+    },
+    "open_threads": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unrelated pending items that deserve later attention. Use 'None' when empty. Free-form markdown (typically a bullet list)."
+    },
+    "session_close_checklist": {
+      "type": "object",
+      "description": "Self-verified checkboxes required by §P3. Eight items in v2.0.0 (added journal_appended for the procedural JOURNAL promotion question).",
+      "required": [
+        "activity_log_updated",
+        "decisions_appended",
+        "personal_lessons_appended",
+        "project_lessons_appended",
+        "journal_appended",
+        "commit_convention_followed",
+        "version_bumps_applied",
+        "active_sessions_row_removed"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "activity_log_updated": { "$ref": "#/$defs/checklistItem" },
+        "decisions_appended": { "$ref": "#/$defs/checklistItem" },
+        "personal_lessons_appended": { "$ref": "#/$defs/checklistItem" },
+        "project_lessons_appended": { "$ref": "#/$defs/checklistItem" },
+        "journal_appended": { "$ref": "#/$defs/checklistItem" },
+        "commit_convention_followed": { "$ref": "#/$defs/checklistItem" },
+        "version_bumps_applied": { "$ref": "#/$defs/checklistItem" },
+        "active_sessions_row_removed": { "$ref": "#/$defs/checklistItem" }
+      }
+    }
+  },
+  "$defs": {
+    "checklistItem": {
+      "type": "object",
+      "required": ["checked"],
+      "additionalProperties": false,
+      "properties": {
+        "checked": {
+          "type": "boolean",
+          "description": "True when the agent checked the box. A session cannot close with unchecked boxes unless explicitly marked N/A."
+        },
+        "na": {
+          "type": "boolean",
+          "default": false,
+          "description": "Set to true when the item does not apply to this session. An item marked N/A still counts as resolved."
+        },
+        "note": {
+          "type": "string",
+          "description": "Optional inline explanation. In markdown this appears as a trailing '— <note>' after the checkbox."
+        }
+      }
+    }
+  }
+}

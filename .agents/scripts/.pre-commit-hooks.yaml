@@ -1,0 +1,24 @@
+# Lead Protocol pre-commit hooks
+#
+# Users install by adding the following to their .pre-commit-config.yaml:
+#
+#   repos:
+#     - repo: https://github.com/mmilanez/lead-protocol
+#       rev: main  # or a specific tag
+#       hooks:
+#         - id: lead-protocol-validate
+
+- id: lead-protocol-validate
+  name: Lead Protocol — validate handoff.md and decisions.jsonl
+  description: >-
+    Validates every .agents/local/<actor>/<agent>/handoff.md and the project's
+    .agents/decisions.jsonl against the JSON Schemas shipped in the template.
+    Pristine templates are skipped; populated handoffs and non-empty decisions
+    logs must conform to handoff.schema.json and decisions.entry.schema.json
+    respectively.
+  entry: python .agents/scripts/validate_state.py
+  language: python
+  additional_dependencies: ["jsonschema>=4.0"]
+  pass_filenames: false
+  files: "^\\.agents/(decisions\\.jsonl|local/[^/]+/[^/]+/handoff\\.md)$"
+  stages: [pre-commit]

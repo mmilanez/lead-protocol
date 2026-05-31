@@ -1,0 +1,35 @@
+# Pre-commit config scaffold for projects using Lead Protocol.
+#
+# OPT-IN. This file is a convenience for projects that use the
+# pre-commit.com ecosystem (Python). If your project uses a different
+# hook manager (husky, lefthook, git-hooks directory) or no hook
+# manager at all, DELETE this file — nothing in the Lead Protocol
+# framework requires it. See `.agents/modules/git-substrate.md` for
+# the substrate context in which hooks typically apply.
+#
+# Install (if you do keep the file):
+#   pip install pre-commit
+#   pre-commit install
+#
+# After install, every commit that touches a pair's handoff.md or the
+# project's decisions.jsonl will first run through validate_state.py
+# and fail the commit if the state does not conform to the schemas.
+#
+# Pristine templates (handoffs with literal 'YYYY-MM-DD' placeholders)
+# are skipped — they are not yet in use.
+#
+# Note on the file regex: `.agents/local/` is gitignored by the template's
+# baseline .gitignore, so per-pair handoffs should not normally be staged.
+# The hook still watches that path in case a project opts out of the
+# baseline ignore and tracks per-pair state intentionally.
+
+repos:
+  - repo: local
+    hooks:
+      - id: lead-protocol-validate
+        name: Lead Protocol — validate state files
+        entry: python .agents/scripts/validate_state.py
+        language: python
+        additional_dependencies: ["jsonschema>=4.0"]
+        pass_filenames: false
+        files: "^\\.agents/(decisions\\.jsonl|local/[^/]+/[^/]+/handoff\\.md)$"

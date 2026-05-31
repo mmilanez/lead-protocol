@@ -1,0 +1,25 @@
+# Security Policy
+
+## Reporting a vulnerability
+
+If you discover a security vulnerability in the Lead Protocol, please report it responsibly.
+
+**Do not open a public issue.** Instead, email [gh@mmilanez.com](mailto:gh@mmilanez.com) with:
+
+- A description of the vulnerability
+- Steps to reproduce
+- Potential impact
+- Suggested fix (if you have one)
+
+We will acknowledge your report within 48 hours and provide a timeline for a fix.
+
+## Scope
+
+This policy applies to the Lead Protocol CLI, MCP server, schemas, and any code in this repository. It does not cover third-party tools or services that integrate with the protocol.
+
+## Supported versions
+
+| Version | Supported |
+|---|---|
+| Latest on `main` | Yes |
+| Older releases | Best effort |
