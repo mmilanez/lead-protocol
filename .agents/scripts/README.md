@@ -1,5 +1,7 @@
 # scripts/ — Lead Protocol framework scripts
 
+<!-- Private launch smoke-test change. Remove before merge. -->
+
 This directory holds two categories of files. The distinction matters when deciding what to keep, delete, or copy on upgrade.
 
 ## Framework (keep on every project)
