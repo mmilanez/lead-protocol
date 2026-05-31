@@ -82,8 +82,8 @@ If your contribution touches the `.agents/` directory:
 
 - **`PROTOCOL_RULES.md`** — do not modify directly. Propose changes via an issue first.
 - **`PROJECT_RULES.md`** — bump version (`X.Y`) on structural changes.
-- **`handoff.md`** — follows an immutable schema. Do not add new fields.
-- **`decisions.json`** — append-only. Never edit past entries.
+- **`handoff.md`** — located in `local/<actor>/<agent>/handoff.md` (gitignored), follows an immutable schema. Do not add new fields.
+- **`decisions.jsonl`** — append-only JSONL. Never edit past entries.
 
 ---
 

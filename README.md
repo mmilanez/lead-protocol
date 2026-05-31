@@ -1,116 +1,46 @@
 # Lead Protocol
 
-**Operational continuity protocol for AI agents** — vendor-agnostic, file-based, and easy to audit.
+**A shift-change logbook for your AI coding assistants.**
 
-> The missing layer between agent instructions (AGENTS.md) and agent memory (mem0).
+When one AI session ends, it writes down what it did, what's left, and why it made the calls it made. The next session — even a different tool, even days later — reads that and picks up where the last one stopped. Nothing forgotten, nothing re-explained.
 
-> Current version: **2.0.1**
+> Current version: **2.0.2**
 
 ---
 
 ## The problem
 
-When multiple AI agents (Claude Code, Cursor, Codex, Antigravity, Windsurf) work on the same codebase — across different sessions, tools, and LLMs — there is no standard way to:
+You've probably hit this: you spend an afternoon working through a problem with an AI assistant, close the chat, and the next day it remembers none of it. Open a different tool — Claude Code instead of Cursor — and you start from zero again. Ask it later *why* it made some change, and there's no record.
 
-- **Hand off state** from one agent session to the next
-- **Audit decisions** made by agents with rationale
-- **Recover from interrupted sessions** without losing context
-- **Coordinate concurrent agents** operating on the same repo
-- **Consult a peer agent mid-session** without copy-pasting context
+When more than one AI assistant works on the same project — across different days, tools, and people — there's no shared place for them to leave notes for each other. So context gets lost, decisions go unexplained, and interrupted work is hard to resume.
 
-Existing solutions solve adjacent problems:
+Lead Protocol gives every assistant the same simple habit: **read the notes before you start, leave notes before you stop.**
+
+<details>
+<summary>For developers: where this sits relative to AGENTS.md, mem0, and LangGraph</summary>
+
+Phrased technically, the gap is the *operational state layer* — what was done, what's pending, who decided what, who is live right now, and how to recover. Existing tools solve adjacent problems, not this one:
 
 - **AGENTS.md / spec-kit** tell agents *what to know* about a project (instructions layer)
 - **mem0 / engram** remember *what happened* in the past (memory layer, DB-backed)
 - **LangGraph / CrewAI** orchestrate agents *in real time* (runtime layer)
 
-**Nobody solves the operational state layer** — what was done, what's pending, who decided what, who is live right now, and how to recover.
+Lead Protocol is vendor-agnostic, file-based, and git-native: the state lives as plain files committed alongside your code, so it is diffable, reviewable, and auditable like any other part of the repo.
+
+</details>
 
 ## The solution
 
-Lead Protocol defines a set of structured files committed to your project — a per-pair `handoff.md` with a strict schema, an append-only `decisions.jsonl` audit trail, a curated `JOURNAL.md` timeline and queryable `LESSONS.md`, rules for takeover and recovery, a concurrent-session registry, and a three-layer separation (framework / project / actor × agent). Any agent that can read text files can use it. No runtime, no API, no vendor dependency.
+Lead Protocol is a set of structured files committed to your git repository:
 
-This release is the file-based protocol scaffold. A CLI and MCP server are planned, but you do not need either one to use Lead Protocol today.
+- **`handoff.md`** — current state: what's done, what's in progress, what's blocked
+- **`decisions.jsonl`** — append-only audit trail: why each important decision was made
+- **`JOURNAL.md`** — curated timeline of structurally significant deliveries
+- **`LESSONS.md`** — mistakes not to repeat, searchable by tag
 
-## Where it fits
+Any agent that can read text files can use it. No runtime, no database, no API keys — it's just files in your git repo. A CLI and MCP server are on the roadmap, but you never need them to use Lead Protocol today.
 
-```
-┌─────────────────────────────────────────────┐
-│  Agentic IDE (Cursor, Claude Code, Windsurf)│  ← where you work
-├─────────────────────────────────────────────┤
-│  Communication (MCP, A2A)                   │  ← how agents connect
-├─────────────────────────────────────────────┤
-│  Orchestration (LangGraph, CrewAI)          │  ← how agents execute
-├─────────────────────────────────────────────┤
-│  ★ Lead Protocol                            │  ← what agents know between
-│  (continuity, handoff, audit, recovery,     │     sessions (this project)
-│   concurrency, cross-agent consultation)    │
-├─────────────────────────────────────────────┤
-│  Compliance (MS Governance Toolkit)         │  ← what agents may do
-├─────────────────────────────────────────────┤
-│  Infrastructure (Git, CI/CD, Cloud)         │  ← where it all runs
-└─────────────────────────────────────────────┘
-```
-
-## Quick start
-
-```bash
-# Clone or download a specific release — never install from main
-git clone --branch v2.0.1 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
-
-# Copy the scaffold into your project
-cp -R /tmp/lp/.agents   your-project/.agents
-cp    /tmp/lp/CLAUDE.md  your-project/CLAUDE.md
-cp    /tmp/lp/AGENTS.md  your-project/AGENTS.md
-
-# Set your project's identity
-$EDITOR your-project/.agents/PROJECT_RULES.md
-
-# Verify the scaffold state
-cd your-project
-python .agents/scripts/validate_state.py
-```
-
-That's it. Read the [operational manual](.agents/modules/README.md) or the sections below to understand how agents use the protocol inside your project.
-
-## Installing a specific version
-
-`main` is the development branch and may contain in-progress work. **Do not install directly from `main`.** Always install from a published release.
-
-Available versions are listed on the [Releases page](https://github.com/mmilanez/lead-protocol/releases). Versions follow [SemVer](https://semver.org):
-
-- **`vX.Y.Z`** (no suffix) — stable release, recommended for production use
-- **`vX.Y.Z-alpha.N` / `-beta.N` / `-rc.N`** — pre-releases, for preview and testing only
-
-### Option 1 — clone a specific version
-
-```bash
-git clone --branch v2.0.1 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
-cp -R /tmp/lp/.agents   your-project/.agents
-cp    /tmp/lp/CLAUDE.md  your-project/CLAUDE.md
-cp    /tmp/lp/AGENTS.md  your-project/AGENTS.md
-cd your-project
-python .agents/scripts/validate_state.py
-```
-
-### Option 2 — download the release archive
-
-On the [Releases page](https://github.com/mmilanez/lead-protocol/releases), pick a version and download the `Source code (zip)` or `(tar.gz)` asset. Extract and copy the files into your project as shown in Quick start.
-
-For Windows PowerShell, use equivalent `Copy-Item` commands and run the same validator command from the target project root.
-
-### Checking which version you have
-
-The version is recorded inside `.agents/PROTOCOL_RULES.md`. Compare against the [Version history](#version-history) table below.
-
-### Release notes and migration
-
-- **Changelog:** [`CHANGELOG.md`](CHANGELOG.md) — release-by-release summary of what changed.
-- **v1.x → v2.0.0 migration:** [`docs/MIGRATION-v2.md`](docs/MIGRATION-v2.md) — required reading for consumer repos upgrading from any `v1.x` release.
-
----
-
-## What gets installed
+In practice, the whole protocol is a single folder of markdown and JSON files dropped into your repository:
 
 ```
 your-project/
@@ -148,7 +78,77 @@ your-project/
 └── AGENTS.md                            # Pointer for other agents
 ```
 
-Any agent that can read text files can work with the protocol. No runtime, no API, no vendor dependency. The bundled Python scripts are only validation and migration helpers.
+The bundled Python scripts are validation and migration helpers — you do not need them to get started.
+
+<details>
+<summary>For developers: where Lead Protocol sits in the agent stack</summary>
+
+Lead Protocol fills the operational-state slot in the broader agent stack:
+
+```
+┌─────────────────────────────────────────────┐
+│  Agentic IDE (Cursor, Claude Code, Windsurf)│  ← where you work
+├─────────────────────────────────────────────┤
+│  Communication (MCP, A2A)                   │  ← how agents connect
+├─────────────────────────────────────────────┤
+│  Orchestration (LangGraph, CrewAI)          │  ← how agents execute
+├─────────────────────────────────────────────┤
+│  ★ Lead Protocol                            │  ← what agents know between
+│  (continuity, handoff, audit, recovery,     │     sessions (this project)
+│   concurrency, cross-agent consultation)    │
+├─────────────────────────────────────────────┤
+│  Compliance (MS Governance Toolkit)         │  ← what agents may do
+├─────────────────────────────────────────────┤
+│  Infrastructure (Git, CI/CD, Cloud)         │  ← where it all runs
+└─────────────────────────────────────────────┘
+```
+
+</details>
+
+## Quick start
+
+```bash
+# Clone a specific release — never install from main
+git clone --branch v2.0.1 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
+
+# Copy the scaffold into your project
+cp -R /tmp/lp/.agents   your-project/.agents
+cp    /tmp/lp/CLAUDE.md  your-project/CLAUDE.md
+cp    /tmp/lp/AGENTS.md  your-project/AGENTS.md
+
+# Set your project's identity
+$EDITOR your-project/.agents/PROJECT_RULES.md
+
+# Verify the scaffold state
+cd your-project
+python .agents/scripts/validate_state.py
+```
+
+That's it. Read the sections below or browse [`.agents/CORE_RULES.md`](.agents/CORE_RULES.md) to understand how agents use the protocol inside your project.
+
+## Installing a specific version
+
+`main` is the development branch and may contain in-progress work. **Do not install directly from `main`.** Always install from a published release.
+
+Available versions are listed on the [Releases page](https://github.com/mmilanez/lead-protocol/releases). Versions follow [SemVer](https://semver.org):
+
+- **`vX.Y.Z`** (no suffix) — stable release, recommended for production use
+- **`vX.Y.Z-alpha.N` / `-beta.N` / `-rc.N`** — pre-releases, for preview and testing only
+
+### Alternative — download the release archive
+
+On the [Releases page](https://github.com/mmilanez/lead-protocol/releases), pick a version and download the `Source code (zip)` or `(tar.gz)` asset. Extract and copy the files into your project as shown in Quick start.
+
+For Windows PowerShell, use equivalent `Copy-Item` commands and run the same validator command from the target project root.
+
+### Checking which version you have
+
+`.agents/PROTOCOL_RULES.md` records the **kernel** version (the framework rules). A patch release may leave the kernel untouched — for example, release `2.0.1` ships kernel `2.0.0` because it only fixed tooling and docs. So the kernel version is a floor, not the release number. The exact release you installed is the one named in the top entry of [`CHANGELOG.md`](CHANGELOG.md); compare it against the [Version history](#version-history) table below.
+
+### Release notes and migration
+
+- **Changelog:** [`CHANGELOG.md`](CHANGELOG.md) — release-by-release summary of what changed.
+- **v1.x → v2.0.0 migration:** [`docs/MIGRATION-v2.md`](docs/MIGRATION-v2.md) — required reading for consumer repos upgrading from any `v1.x` release.
 
 ---
 
@@ -162,13 +162,20 @@ Every file under `.agents/` belongs to exactly one of three layers:
 | **Project** | Your project | Changes with project evolution | Yes — versioned with the repo |
 | **Actor × Agent** | One human operator running one AI agent | Changes every session | **No** — gitignored, one folder per pair |
 
+<details>
+<summary>Why the pair (actor × agent) is the unit of concurrency</summary>
+
 The smallest unit that owns volatile state is the pair `(actor, agent)`, not the actor alone. Claude Code, Codex, Gemini, and Cursor operated by the same human each get their own `local/<actor>/<agent>/`. That is what makes cross-agent interchange in the same project viable — agents never overwrite each other's handoff.
 
 Full detail: `.agents/PROTOCOL_RULES.md §P3 — Three-layer state model`.
 
+</details>
+
 ---
 
 ## How agents boot in your project
+
+> You don't run these steps — your AI agent does, automatically, the moment it reads `CLAUDE.md`. This section explains what's happening under the hood.
 
 Every compliant agent reads, in order:
 
@@ -210,8 +217,14 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
-| **2.0.1** | Patch from first external consumer feedback. `migrate_to_v2.py --dry-run` now accepted (was documented but rejected by argparse); pristine `LESSONS.md` scaffold no longer false-positives the rerun-safety guard; `docs/MIGRATION-v2.md` Step 3 rewritten with a prominent agent-driven callout on `--yes` and a warning on `--agent` slug seeding pair-local continuity. No kernel or schema changes. |
-| **2.0.0** | **Three-layer state model (Framework / Project / Actor × Agent).** Structural major. New files: `JOURNAL.md`, `LESSONS.md`, `AGENTS_MAP.md`. `decisions.json` (JSON array) replaced by `decisions.jsonl` (one object per line, append-only). `handoff.md` relocates to `local/<actor>/<agent>/handoff.md`. New `migrate_to_v2.py` migration tool. Six-step baseline boot order. `PROTOCOL_RULES.md` loads on demand via `§P-Access`. |
+| **2.0.1** | Patch from first external consumer feedback. `migrate_to_v2.py --dry-run` now accepted; pristine `LESSONS.md` scaffold no longer false-positives the rerun-safety guard; `docs/MIGRATION-v2.md` Step 3 rewritten with agent-driven callout and `--agent` slug warning. No kernel or schema changes. |
+| **2.0.0** | **Three-layer state model (Framework / Project / Actor × Agent).** New files: `JOURNAL.md`, `LESSONS.md`, `AGENTS_MAP.md`. `decisions.json` replaced by `decisions.jsonl` (append-only). `handoff.md` relocates to `local/<actor>/<agent>/handoff.md`. New `migrate_to_v2.py` migration tool. Six-step baseline boot order. |
+
+<details>
+<summary>Earlier versions (v1.0.0 – v1.9.1)</summary>
+
+| Version | Highlights |
+|---|---|
 | **1.9.1** | Template cosmetic pass — clarifies opt-in nature of pre-commit tooling, adds `scripts/README.md`, reframes validation section so local ad-hoc validation is the default path. No framework rules changed. |
 | **1.9.0** | **Substrate-agnostic kernel + opt-in modules.** `PROTOCOL_RULES.md` rewritten as kernel (§P1–§P7, new §P9 module contract); git/PR/README-sync rules extracted to `modules/git-substrate.md`; meta-repo promotion (former §P8) relocated to `modules/meta-repo.md`. |
 | **1.8.3** | CI state validation workflow — GitHub Action that runs `validate_state.py` on every PR. |
@@ -225,6 +238,8 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 | **1.4.0** | SemVer for rules files + pull-request-required rule. |
 | **1.3.0** | §P6 cross-repo references + §P7 private vs shared context separation. |
 | **1.0.0** | Initial protocol: handoff, decisions, takeover, recovery, authority hierarchy. |
+
+</details>
 
 ## Roadmap
 
