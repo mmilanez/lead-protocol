@@ -59,6 +59,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import sys
 from dataclasses import dataclass, field
@@ -211,6 +212,50 @@ class Plan:
             for n in self.notes:
                 lines.append(f"  - {n}")
         return "\n".join(lines)
+
+
+_SLUG_RE = re.compile(r'^[A-Za-z0-9._@-]+$')
+
+
+def _validate_slug(value: str, label: str) -> None:
+    """Reject actor/agent values that could cause path traversal.
+
+    Allowed: alphanumerics plus . _ @ - (covers alice@workstation, codex-cli, user.name).
+    Rejected: empty, path separators, drive letters, bare '..' or any segment containing '..'.
+    Belt-and-suspenders: after joining, the resolved path must still start with the expected
+    prefix — catches edge cases in Path resolution across platforms.
+    """
+    if not value:
+        raise SystemExit(f"error: {label} must not be empty")
+    if re.search(r'[/\\:]', value):
+        raise SystemExit(
+            f"error: {label} {value!r} contains a path separator or drive letter — "
+            "use a plain identifier such as 'alice@workstation' or 'claude'"
+        )
+    if value == ".." or "/../" in f"/{value}/" or value.startswith("../") or value.endswith("/.."):
+        raise SystemExit(
+            f"error: {label} {value!r} contains a traversal segment — "
+            "use a plain identifier such as 'alice@workstation' or 'claude'"
+        )
+    if not _SLUG_RE.match(value):
+        raise SystemExit(
+            f"error: {label} {value!r} contains invalid characters — "
+            "allowed: alphanumerics, hyphen, underscore, dot, at-sign "
+            "(e.g. 'alice@workstation', 'claude', 'codex-cli')"
+        )
+
+
+def _check_slug_destination(agents_dir: Path, actor: str, agent: str) -> None:
+    """Verify the resolved pair directory is under agents_dir/local/."""
+    expected_prefix = (agents_dir / "local").resolve()
+    candidate = (agents_dir / "local" / actor / agent).resolve()
+    try:
+        candidate.relative_to(expected_prefix)
+    except ValueError:
+        raise SystemExit(
+            f"error: resolved pair directory {candidate} escapes the expected "
+            f"prefix {expected_prefix} — check --actor and --agent values"
+        )
 
 
 def find_repo_root(start: Path) -> Path:
@@ -610,8 +655,6 @@ def _rewrite_handoff(src: Path, dst: Path, repo_root: Path) -> None:
     The v1 source is preserved under agent_log/ — the user removes it
     together with the rest of agent_log/ after validating the new layout.
     """
-    import re
-
     text = src.read_text(encoding="utf-8")
     dst.parent.mkdir(parents=True, exist_ok=True)
 
@@ -716,6 +759,9 @@ def main() -> int:
 
     actor = resolve_actor(args.actor)
     agent = resolve_agent(args.agent)
+    _validate_slug(actor, "--actor / LEAD_PROTOCOL_ACTOR_ID")
+    _validate_slug(agent, "--agent / LEAD_PROTOCOL_AGENT_ID")
+    _check_slug_destination(agents_dir, actor, agent)
 
     plan = build_plan(repo_root, agents_dir, actor, agent)
     print(plan.describe())

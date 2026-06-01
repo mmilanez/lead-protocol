@@ -4,7 +4,7 @@
 
 When one AI session ends, it writes down what it did, what's left, and why it made the calls it made. The next session — even a different tool, even days later — reads that and picks up where the last one stopped. Nothing forgotten, nothing re-explained.
 
-> Current version: **2.0.2**
+> Current version: **2.0.3**
 
 ---
 
@@ -108,8 +108,9 @@ Lead Protocol fills the operational-state slot in the broader agent stack:
 ## Quick start
 
 ```bash
-# Clone a specific release — never install from main
-git clone --branch v2.0.1 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
+# Clone the latest stable release
+# Check https://github.com/mmilanez/lead-protocol/releases for the current version number
+git clone --branch v2.0.3 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
 
 # Copy the scaffold into your project
 cp -R /tmp/lp/.agents   your-project/.agents
@@ -121,6 +122,26 @@ $EDITOR your-project/.agents/PROJECT_RULES.md
 
 # Verify the scaffold state
 cd your-project
+python .agents/scripts/validate_state.py
+```
+
+**Windows (PowerShell):**
+
+```powershell
+# Clone the latest stable release
+# Check https://github.com/mmilanez/lead-protocol/releases for the current version number
+git clone --branch v2.0.3 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
+
+# Copy the scaffold into your project
+Copy-Item -Recurse $env:TEMP\lp\.agents   your-project\.agents
+Copy-Item           $env:TEMP\lp\CLAUDE.md your-project\CLAUDE.md
+Copy-Item           $env:TEMP\lp\AGENTS.md your-project\AGENTS.md
+
+# Set your project's identity
+code your-project\.agents\PROJECT_RULES.md
+
+# Verify the scaffold state
+Set-Location your-project
 python .agents/scripts/validate_state.py
 ```
 
@@ -217,6 +238,8 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
+| **2.0.3** | Security patch: `migrate_to_v2.py` now validates `--actor` / `--agent` values against path traversal (rejects `..`, `/`, `\`, absolute paths, drive letters). README Quick Start updated to current release with PowerShell copy block added. `SECURITY.md` and `CONTRIBUTING.md` scope corrected (CLI/MCP are roadmap, not shipped). CI workflow permissions hardened. No kernel or schema changes. |
+| **2.0.2** | Documentation and release infrastructure fixes. README version references corrected. No kernel or schema changes. |
 | **2.0.1** | Patch from first external consumer feedback. `migrate_to_v2.py --dry-run` now accepted; pristine `LESSONS.md` scaffold no longer false-positives the rerun-safety guard; `docs/MIGRATION-v2.md` Step 3 rewritten with agent-driven callout and `--agent` slug warning. No kernel or schema changes. |
 | **2.0.0** | **Three-layer state model (Framework / Project / Actor × Agent).** New files: `JOURNAL.md`, `LESSONS.md`, `AGENTS_MAP.md`. `decisions.json` replaced by `decisions.jsonl` (append-only). `handoff.md` relocates to `local/<actor>/<agent>/handoff.md`. New `migrate_to_v2.py` migration tool. Six-step baseline boot order. |
 

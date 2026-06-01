@@ -412,6 +412,82 @@ class TestConcatActivity:
 
 
 # --------------------------------------------------------------------------- #
+# _validate_slug — path traversal guard (v2.0.3)                               #
+# --------------------------------------------------------------------------- #
+
+class TestSlugValidator:
+    """_validate_slug must accept real-world identifiers and reject any value
+    that could cause path traversal outside .agents/local/<actor>/<agent>/."""
+
+    # --- valid slugs ---
+
+    def test_accepts_user_at_host(self) -> None:
+        m._validate_slug("alice@workstation", "actor")  # must not raise
+
+    def test_accepts_maintainer_style(self) -> None:
+        m._validate_slug("marco@ls-usa-ntb01", "actor")  # must not raise
+
+    def test_accepts_simple_agent(self) -> None:
+        m._validate_slug("claude", "agent")  # must not raise
+
+    def test_accepts_hyphenated_agent(self) -> None:
+        m._validate_slug("codex-cli", "agent")  # must not raise
+
+    def test_accepts_dot_name(self) -> None:
+        m._validate_slug("user.name", "actor")  # must not raise
+
+    # --- invalid slugs ---
+
+    def test_rejects_empty(self) -> None:
+        with pytest.raises(SystemExit, match="must not be empty"):
+            m._validate_slug("", "actor")
+
+    def test_rejects_posix_traversal(self) -> None:
+        with pytest.raises(SystemExit):
+            m._validate_slug("../../etc/passwd", "actor")
+
+    def test_rejects_windows_traversal(self) -> None:
+        with pytest.raises(SystemExit):
+            m._validate_slug(r"..\..\..\outside", "actor")
+
+    def test_rejects_absolute_posix(self) -> None:
+        with pytest.raises(SystemExit):
+            m._validate_slug("/etc/passwd", "actor")
+
+    def test_rejects_windows_drive(self) -> None:
+        with pytest.raises(SystemExit):
+            m._validate_slug(r"C:\Users\evil", "actor")
+
+    def test_rejects_bare_dotdot(self) -> None:
+        with pytest.raises(SystemExit):
+            m._validate_slug("..", "actor")
+
+    def test_rejects_embedded_dotdot(self) -> None:
+        with pytest.raises(SystemExit):
+            m._validate_slug("valid/../escape", "actor")
+
+    def test_rejects_forward_slash(self) -> None:
+        with pytest.raises(SystemExit):
+            m._validate_slug("sub/path", "actor")
+
+    def test_rejects_backslash(self) -> None:
+        with pytest.raises(SystemExit):
+            m._validate_slug("sub\\path", "actor")
+
+
+# --------------------------------------------------------------------------- #
+# _check_slug_destination — belt-and-suspenders resolution check (v2.0.3)      #
+# --------------------------------------------------------------------------- #
+
+class TestCheckSlugDestination:
+    def test_valid_pair_passes(self, repo: Path) -> None:
+        m._check_slug_destination(repo / ".agents", "alice@workstation", "claude")  # must not raise
+
+    def test_valid_maintainer_pair_passes(self, repo: Path) -> None:
+        m._check_slug_destination(repo / ".agents", "marco@ls-usa-ntb01", "claude")  # must not raise
+
+
+# --------------------------------------------------------------------------- #
 # resolve_actor / resolve_agent                                                 #
 # --------------------------------------------------------------------------- #
 

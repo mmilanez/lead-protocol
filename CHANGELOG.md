@@ -11,6 +11,39 @@ re-stated here.
 
 ---
 
+## [2.0.3] — 2026-06-01
+
+Security patch and public-repo polish. No kernel or schema changes — the
+framework `PROTOCOL_RULES.md` version stays at `2.0.0`.
+
+### Fixed
+
+- **Path traversal in `migrate_to_v2.py`** (security): `--actor`, `--agent`,
+  `LEAD_PROTOCOL_ACTOR_ID`, and `LEAD_PROTOCOL_AGENT_ID` values are now
+  validated against path traversal before being used to construct
+  `.agents/local/<actor>/<agent>/`. Values containing `/`, `\`, `:`, `..`,
+  or absolute path forms are rejected with a clear error message. A
+  belt-and-suspenders destination check verifies the resolved path stays
+  under `.agents/local/`. New `TestSlugValidator` and `TestCheckSlugDestination`
+  test classes added to `test_migrate_to_v2.py`.
+
+### Changed
+
+- `README.md` Quick Start now clones `v2.0.3` (was `v2.0.1`) and includes a
+  comment directing users to the Releases page for the current version number.
+  PowerShell `Copy-Item` block added alongside the existing `cp` block for
+  Windows users. Version history updated to include `2.0.2` and `2.0.3`.
+- `SECURITY.md` scope corrected: supported surface is now the scaffold, JSON
+  Schemas, docs, validator, and migration tool. CLI and MCP server are noted
+  as planned, not shipped. Supported versions table updated (`Latest published
+  release` → Supported; `main` → Development, best effort).
+- `CONTRIBUTING.md` "We welcome" section updated: CLI/MCP noted as planned
+  surfaces accepting design input via issues, not code contributions yet.
+- CI workflow `permissions: contents: read` added at workflow scope to both
+  `state-validation.yml` and `readme-sync.yml`.
+
+---
+
 ## [2.0.2] — 2026-05-31
 
 Documentation overhaul of the consumer-facing `README.md`. No kernel, schema,

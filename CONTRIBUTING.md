@@ -52,11 +52,12 @@ AI agents working on this repo follow the `[Agent] <type>: <summary>` convention
 
 ### We welcome
 
-- Bug fixes and improvements to the CLI, schemas, or MCP server
+- Bug fixes and improvements to the schemas, validator, migration tool, or documentation
 - New `PROJECT_RULES.md` templates for different industries/use cases
 - Documentation improvements (typos, clarity, examples)
 - Test coverage for existing functionality
 - Integrations with new AI coding agents or IDEs
+- Design input on the planned CLI and MCP server (open an issue to discuss)
 
 ### Please avoid
 
