@@ -4,7 +4,7 @@
 
 When one AI session ends, it writes down what it did, what's left, and why it made the calls it made. The next session — even a different tool, even days later — reads that and picks up where the last one stopped. Nothing forgotten, nothing re-explained.
 
-> Current version: **2.0.3**
+> Current version: **2.0.4**
 
 ---
 
@@ -110,7 +110,7 @@ Lead Protocol fills the operational-state slot in the broader agent stack:
 ```bash
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.0.3 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
+git clone --branch v2.0.4 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
 
 # Copy the scaffold into your project
 cp -R /tmp/lp/.agents   your-project/.agents
@@ -130,7 +130,7 @@ python .agents/scripts/validate_state.py
 ```powershell
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.0.3 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
+git clone --branch v2.0.4 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
 
 # Copy the scaffold into your project
 Copy-Item -Recurse $env:TEMP\lp\.agents   your-project\.agents
@@ -238,6 +238,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
+| **2.0.4** | **Branch ordering rule (kernel 2.0.1).** Adds an explicit rule (PROTOCOL_RULES §P3) requiring session-close state to be committed on the feature branch before the PR is opened, not written to the default branch after merge. Adds §M-git-6 to `git-substrate.md` with git-specific enforcement and a reviewer signal for post-merge closeout PRs. Adds one checklist item to the handoff schema. Fixes #2. |
 | **2.0.3** | Security patch: `migrate_to_v2.py` now validates `--actor` / `--agent` values against path traversal (rejects `..`, `/`, `\`, absolute paths, drive letters). README Quick Start updated to current release with PowerShell copy block added. `SECURITY.md` and `CONTRIBUTING.md` scope corrected (CLI/MCP are roadmap, not shipped). CI workflow permissions hardened. No kernel or schema changes. |
 | **2.0.2** | Documentation and release infrastructure fixes. README version references corrected. No kernel or schema changes. |
 | **2.0.1** | Patch from first external consumer feedback. `migrate_to_v2.py --dry-run` now accepted; pristine `LESSONS.md` scaffold no longer false-positives the rerun-safety guard; `docs/MIGRATION-v2.md` Step 3 rewritten with agent-driven callout and `--agent` slug warning. No kernel or schema changes. |

@@ -1,6 +1,6 @@
 # modules/git-substrate.md — Git / pull-request substrate rules
 
-> Version: 1.1.0 | Updated: 2026-04-21 | Protocol: Lead Protocol v2.0.0+
+> Version: 1.2.0 | Updated: 2026-06-01 | Protocol: Lead Protocol v2.0.1+
 > Scope: Opt-in module. Activate via `PROJECT_RULES.md §J8 Active modules: git-substrate`.
 > Applies to: repositories hosted on a git platform with pull-request support (GitHub, GitLab, Bitbucket, etc.).
 
@@ -53,6 +53,18 @@ The `PROTOCOL_RULES §P3` commit convention (`[Agent] <type>: <summary>`) applie
 ## §M-git-5 — `.gitignore` baseline
 
 The template ships a `.gitignore` that ignores `.agents/local/`. This is non-negotiable for git-substrate projects: committing per-pair state leaks personal context and creates spurious merge conflicts on every session. If a project using this module lacks the line `.agents/local/` in its `.gitignore`, treat the omission as a bug and fix it before any session close that would commit state.
+
+## §M-git-6 — Session close ordering before PR merge *(v1.2.0+)*
+
+All session-close state must be committed on the **feature branch** before the pull request is opened. Writing operational state to the default branch after merge is not permitted.
+
+**Rationale:** the default branch is typically protected (all writes require a PR). State committed after merge requires a follow-up PR for files that carry no meaningful code diff, splitting the audit trail from the work it documents and creating noise in the review history.
+
+**Agent rule:** the session-close checklist in `handoff.md` must be fully checked before the PR is opened — not after. See PROTOCOL_RULES §P3 branch ordering rule for the substrate-neutral statement.
+
+**Reviewer signal:** if a PR modifies only project-layer state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`) and the description explains it as a post-merge closeout, flag the PR. The correct fix is to reopen the feature branch with the state files included and re-merge.
+
+**Interaction with §M-git-1:** project-layer state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`) normally allow direct commit without branching. §M-git-6 does not override that — it restricts **when** that direct commit may happen relative to PR lifecycle. When a PR is open for branched work, write your state to the feature branch before merge, not directly to the default branch after.
 
 ## Optional tooling that ships with the template
 
