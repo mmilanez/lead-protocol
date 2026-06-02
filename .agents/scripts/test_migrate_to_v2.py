@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Unit tests for migrate_to_v2.py.
 
 Coverage is narrowly scoped to the migration functions that produce persistent
