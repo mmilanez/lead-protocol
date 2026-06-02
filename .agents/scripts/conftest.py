@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Shared pytest fixtures for validate_state.py tests."""
 
 from __future__ import annotations
