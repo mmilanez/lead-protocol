@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: Apache-2.0
 """Migrate a consumer project from Lead Protocol v1.x to v2.0.0.
 
 v1.x layout (what we migrate FROM):

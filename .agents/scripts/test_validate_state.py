@@ -1,3 +1,4 @@
+# SPDX-License-Identifier: Apache-2.0
 """Unit tests for validate_state.py (v2.0.0 layout).
 
 Run from the repo root:
