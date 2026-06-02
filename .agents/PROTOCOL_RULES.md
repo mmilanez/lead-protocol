@@ -1,6 +1,6 @@
 # PROTOCOL_RULES.md — Lead Protocol framework rules (generic)
 
-> Version: 2.0.0 | Updated: 2026-04-21
+> Version: 2.0.1 | Updated: 2026-06-01
 > Scope: Substrate-agnostic kernel. Opt-in modules live in `modules/` and are activated via `PROJECT_RULES.md §J8`.
 > This file contains no project-specific content — that lives in `PROJECT_RULES.md`.
 
@@ -128,6 +128,7 @@ Consequences:
 - [ ] Commit(s) follow `[Agent] <type>: <summary>` convention
 - [ ] Version bumps applied to any rules file whose content changed
 - [ ] `active_sessions.md` row for this session removed (if registry is in use)
+- [ ] Session-close state written on the feature branch before the PR is opened (when substrate uses pull requests — see §M-git-6)
 ```
 
 Schema is immutable — no agent may add sections, tables, or free paragraphs. Timestamp must include HH:MM. The session close checklist is **part of the schema**; each box is self-verified by the agent before closing. Unchecked boxes signal incomplete close to the next agent.
@@ -206,6 +207,16 @@ At the end of a non-trivial session, the agent **must** update every applicable 
 | `.agents/sessions/active_sessions.md` | Registry is in use and this session has an open row | Registry not in use, or no open row |
 
 **JOURNAL promotion — procedural, not heuristic.** At session close, the agent asks the user exactly one procedural question: *"Did this session produce a structurally significant delivery? If yes, promote to JOURNAL."* The user replies with one word. No background detection, no heuristic guessing — orchestration of agents operates on **explicit commands**, never on state inference. The criterion for a "yes" is the six-month test: *if a new contributor arriving in six months would still benefit from seeing this entry, it belongs in JOURNAL; otherwise it belongs only in the actor's personal `activity.log`*.
+
+### Branch ordering rule *(v2.0.1+)*
+
+Session close is the **final operational step on the feature branch**. Complete all session-close artifacts — handoff, decisions, lessons, and JOURNAL updates — before opening or merging the pull request.
+
+**Why this order matters:** if session-close state is written on the default branch after merge, protected-branch settings may block the write or force a follow-up PR for state files only. This creates unnecessary review overhead and an audit gap where the handoff describes work that is not yet in the branch history.
+
+**Implementation rule:** the session-close checklist in `handoff.md` is complete (all boxes checked) when the pull request is **opened**, not after it merges. Agents must not mark the session closed and then create a separate follow-up PR to write state files.
+
+This rule is substrate-neutral. Git-specific enforcement and rationale live in the active substrate module (see `modules/git-substrate.md §M-git-6`).
 
 **Verification step (mandatory before closing):**
 
