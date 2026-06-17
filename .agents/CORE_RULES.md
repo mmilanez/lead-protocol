@@ -1,6 +1,6 @@
 # CORE_RULES.md — Rules index and essential contracts
 
-> Version: 1.5.0 | Updated: 2026-04-21 | Protocol: Lead Protocol v2.0.0
+> Version: 1.6.0 | Updated: 2026-06-17 | Protocol: Lead Protocol v2.1.0
 
 This file is the first thing every agent reads. It is deliberately short: just the index into `PROTOCOL_RULES.md`, the essential contracts an agent must obey at every session start, and the precedence rule. It never duplicates the kernel — only points at it.
 
@@ -18,6 +18,8 @@ Read, in order:
 6. `.agents/local/<actor>/<agent>/handoff.md` — current state of *this* `(actor, agent)` pair
 
 Listing (not reading) of `.agents/checkpoints/` is enough on boot; individual checkpoints load on demand when relevant. `PROTOCOL_RULES.md` itself is consulted on demand — not in the baseline — per `§P-Access`.
+
+After step 2, if `PROJECT_RULES.md` is still pristine (see *First-run setup is a hard boot gate* below), run the `§P10` setup gate before proceeding to step 3.
 
 ---
 
@@ -60,6 +62,10 @@ Agents never edit `.agents/AGENTS_MAP.md` autonomously. They *propose* additions
 ### Session close must be verified
 
 Every non-trivial session closes by self-verifying the checklist in `handoff.md`. One item is a **procedural question** to the user: *"Did this session produce a structurally significant delivery? If yes, promote to JOURNAL."* No heuristic, no auto-detection. Detail: `PROTOCOL_RULES.md §P3 — Session close ritual`.
+
+### First-run setup is a hard boot gate
+
+If `PROJECT_RULES.md` is absent or still pristine (the `§J1` Name or the `§J8` substrate/modules still contain a `[...]` placeholder), the agent must run the first-run setup interview and write the answers before doing any other requested work, even work the user asked for first. The user may reply `later` to defer once; the gate re-fires next session. Non-interactive environments (CI, Codespaces, devcontainers) skip with a warning. A repo-root `.lead-protocol-source` sentinel disables the gate for the framework's own source repo. The gate self-clears once Name and `§J8` are real. Detail: `PROTOCOL_RULES.md §P10`.
 
 ---
 
