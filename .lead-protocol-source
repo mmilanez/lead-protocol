@@ -1,0 +1,4 @@
+This file marks the Lead Protocol framework's own source and distribution repository.
+Its presence disables the PROTOCOL_RULES.md §P10 first-run setup gate, because the
+scaffold in this repo is pristine by design and must ship that way. Consumer projects
+never contain this file: it lives outside .agents/, so neither install path copies it.

@@ -8,6 +8,7 @@ At the start of every session, you MUST silently read the following files in ord
 
 1. `.agents/CORE_RULES.md` — index of operations and essential contracts
 2. `.agents/PROJECT_RULES.md` — business context; read `§J8 Active modules` first
+2a. **Setup gate:** if `.agents/PROJECT_RULES.md` is missing or still pristine (the `§J1` Name or `§J8` substrate/modules still contain `[...]` placeholders) AND no `.lead-protocol-source` sentinel exists at the repo root, you MUST run the first-run setup interview defined in `.agents/PROTOCOL_RULES.md §P10` and write the answers before continuing the boot or serving any request, even if the user asked for something else first. The user may reply `later` to defer once. In non-interactive environments, skip with a warning.
 3. For each scope listed in `§J8 Active modules` (in declaration order): `.agents/modules/<scope>.md`
 4. `.agents/AGENTS_MAP.md` — tool-signature → agent-slug map (needed to resolve your own `<agent>` slug)
 5. `.agents/sessions/active_sessions.md` — concurrent-session awareness

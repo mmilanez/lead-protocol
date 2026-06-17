@@ -4,7 +4,7 @@
 
 When one AI session ends, it writes down what it did, what's left, and why it made the calls it made. The next session — even a different tool, even days later — reads that and picks up where the last one stopped. Nothing forgotten, nothing re-explained.
 
-> Current version: **2.0.4**
+> Current version: **2.1.0**
 
 ---
 
@@ -110,14 +110,14 @@ Lead Protocol fills the operational-state slot in the broader agent stack:
 ```bash
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.0.4 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
+git clone --branch v2.1.0 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
 
 # Copy the scaffold into your project
 cp -R /tmp/lp/.agents   your-project/.agents
 cp    /tmp/lp/CLAUDE.md  your-project/CLAUDE.md
 cp    /tmp/lp/AGENTS.md  your-project/AGENTS.md
 
-# Set your project's identity
+# Set your project's identity (optional: on first run your agent will interview you and fill this in)
 $EDITOR your-project/.agents/PROJECT_RULES.md
 
 # Verify the scaffold state
@@ -130,14 +130,14 @@ python .agents/scripts/validate_state.py
 ```powershell
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.0.4 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
+git clone --branch v2.1.0 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
 
 # Copy the scaffold into your project
 Copy-Item -Recurse $env:TEMP\lp\.agents   your-project\.agents
 Copy-Item           $env:TEMP\lp\CLAUDE.md your-project\CLAUDE.md
 Copy-Item           $env:TEMP\lp\AGENTS.md your-project\AGENTS.md
 
-# Set your project's identity
+# Set your project's identity (optional: on first run your agent will interview you and fill this in)
 code your-project\.agents\PROJECT_RULES.md
 
 # Verify the scaffold state
@@ -209,6 +209,8 @@ Every compliant agent reads, in order:
 
 `PROTOCOL_RULES.md` itself is read **on demand**, not in the baseline — `CORE_RULES.md` points agents there when needed. This keeps baseline cost bounded. See `PROTOCOL_RULES.md §P-Access` for the full load contract.
 
+**First run:** if `PROJECT_RULES.md` is still the pristine template, the agent does not silently proceed. It runs a short setup interview, fills in your project identity, and only then handles your request. See `PROTOCOL_RULES.md §P10`. You can still configure the file by hand instead.
+
 Pointer files `CLAUDE.md` and `AGENTS.md` at the project root exist so each vendor-specific agent tool discovers `.agents/` without custom configuration.
 
 ---
@@ -238,6 +240,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
+| **2.1.0** | **First-run setup interview (kernel 2.1.0).** New `PROTOCOL_RULES §P10`: when a project still runs the pristine `PROJECT_RULES.md` template, any compliant agent runs a short setup interview on boot and writes the project identity before serving requests, instead of silently operating against the template. Hard gate with a one-time `later` defer; skipped in non-interactive environments; self-clears once configured. A repo-root `.lead-protocol-source` sentinel exempts the framework's own source repo. |
 | **2.0.4** | **Branch ordering rule (kernel 2.0.1).** Adds an explicit rule (PROTOCOL_RULES §P3) requiring session-close state to be committed on the feature branch before the PR is opened, not written to the default branch after merge. Adds §M-git-6 to `git-substrate.md` with git-specific enforcement and a reviewer signal for post-merge closeout PRs. Adds one checklist item to the handoff schema. Fixes #2. |
 | **2.0.3** | Security patch: `migrate_to_v2.py` now validates `--actor` / `--agent` values against path traversal (rejects `..`, `/`, `\`, absolute paths, drive letters). README Quick Start updated to current release with PowerShell copy block added. `SECURITY.md` and `CONTRIBUTING.md` scope corrected (CLI/MCP are roadmap, not shipped). CI workflow permissions hardened. No kernel or schema changes. |
 | **2.0.2** | Documentation and release infrastructure fixes. README version references corrected. No kernel or schema changes. |

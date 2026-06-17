@@ -1,6 +1,6 @@
 # PROTOCOL_RULES.md — Lead Protocol framework rules (generic)
 
-> Version: 2.0.1 | Updated: 2026-06-01
+> Version: 2.1.0 | Updated: 2026-06-17
 > Scope: Substrate-agnostic kernel. Opt-in modules live in `modules/` and are activated via `PROJECT_RULES.md §J8`.
 > This file contains no project-specific content — that lives in `PROJECT_RULES.md`.
 
@@ -464,3 +464,59 @@ Agents read active modules after `PROJECT_RULES.md` and before `AGENTS_MAP.md` /
 - When a module cites a kernel anchor, use the fully qualified form `PROTOCOL_RULES §Px` to mark the module→kernel crossing explicitly.
 - A module may depend on another module only if it declares the dependency in its header.
 - Module CI/tooling (if any) must include a top-of-file comment identifying the module it enforces, so consumer repos that do not list the module know not to copy the tooling.
+
+## §P10 — First-run setup interview *(v2.1.0+)*
+
+Lead Protocol ships `PROJECT_RULES.md` as a pristine template: `[Project Name]`, bracketed `[e.g., ...]` examples, and an unconfigured `§J8`. Whether a project was scaffolded by copying the release files or by the bundled CLI, the template is identical and must be configured before the protocol can operate correctly, because without a real `§J8 Active modules` the agent cannot even finish its baseline boot (step 3 loads the modules named there). Consumers frequently skip this step and let agents run against the raw template. This section makes configuration a hard, self-clearing boot gate.
+
+### Pristine detection
+
+After reading `PROJECT_RULES.md` (baseline boot step 2), the project is **unconfigured** when ANY of these holds:
+
+- `PROJECT_RULES.md` is absent.
+- The `§J1` **Name** value still contains a `[...]` placeholder (for example, `[Project Name]`).
+- The `§J8` **Active substrate** or **Active modules** value still contains a `[...]` placeholder.
+
+Detection is purely textual (a `[` inside the field value), the same signal the bundled CLI already uses. There is no separate marker file; the filled fields are the marker.
+
+### Framework-source carve-out
+
+If a sentinel file named `.lead-protocol-source` exists at the repository root, the gate is disabled. This marks the Lead Protocol framework's own development and distribution source, whose scaffold is pristine by design and must stay that way to ship. The sentinel lives outside `.agents/`, so it never travels to a consumer project through either install path.
+
+### The gate (interactive environments)
+
+When a project is unconfigured and not carved out, the agent MUST, before performing any other requested work:
+
+1. Pause the user's request and state that the project is not yet configured.
+2. Run the setup interview (below).
+3. Write the answers into `PROJECT_RULES.md`.
+4. Resume the user's original request.
+
+The user may defer exactly once by replying `later` or `skip`. The agent then performs the requested work but operates under an explicit "project unconfigured" caveat, and the gate re-fires at the start of every subsequent session. Deferral is never persisted: there is no "don't ask again". This mirrors the `§P3` AGENTS_MAP fallback, where an unresolved state recurs as a social signal rather than being silently suppressed.
+
+### Non-interactive environments
+
+If the environment is non-interactive (any of `CI`, `GITHUB_ACTIONS`, `CODESPACES`, `DEVCONTAINER` is set, or no interactive input channel exists, the same signals `§P3` uses for `<actor>` ephemeral detection), the agent skips the interview, emits a single warning that `PROJECT_RULES.md` is unconfigured, proceeds with the task, and persists no configured state. The next interactive session is gated normally.
+
+### Interview content
+
+The interview gathers the minimum needed for identity and operation. Soft fields are defaulted with a `refine later` note rather than asked:
+
+| # | Question | Writes to |
+|---|---|---|
+| 1 | Project name | `§J1` Name and the document title line |
+| 2 | Type and one-line purpose | `§J1` Type, Purpose |
+| 3 | Primary stack | `§J1` Stack |
+| 4 | Substrate (`git+github` / `git` / `local` / `cloud-sync` / `other`) | `§J8` Active substrate; auto-derives `§J8` Active modules (`git` or `git+github` gives `git-substrate`; otherwise `none`) and a default branch convention |
+| 5 | Primary language for source and docs | `§J4` (source/docs row). AI operational files stay EN-US regardless, per `§P5` |
+| 6 | Which agents operate here | `§J2` table (defaults: the current agent as lead, Humans as reviewer) |
+
+After the interview the agent:
+
+- Fills every bracketed field it has an answer for. Sets soft or unsupplied fields (`§J3` tone, `§J5` extra checks, `§J1` Consumers) to sensible defaults annotated `<!-- refine later -->`. It never leaves a `[...]` placeholder in Name or `§J8`.
+- Stamps the `> Updated:` header with today's date.
+- Proposes any new agent-signature rows for `AGENTS_MAP.md` to the user for confirmation, but does NOT write `AGENTS_MAP.md` itself (`§P3`: AGENTS_MAP is maintainer-managed).
+
+### Idempotency
+
+Once Name and `§J8` carry real values, pristine detection returns false and the gate never fires again. No flag, no marker, nothing to drift.
