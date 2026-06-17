@@ -1,11 +1,11 @@
-# @lead-protocol/cli
+# @leadsolutions/lead-protocol
 
 CLI tooling for the [Lead Protocol](https://github.com/mmilanez/lead-protocol) — a multi-agent coordination framework.
 
 ## Quick Start
 
 ```bash
-npx @lead-protocol/cli init
+npx @leadsolutions/lead-protocol init
 ```
 
 This copies `.agents/` into your project and generates `CLAUDE.md` and `AGENTS.md` with the boot procedure. Then edit `.agents/PROJECT_RULES.md` to set your project identity — same as the [manual setup](https://github.com/mmilanez/lead-protocol#quick-start), minus the copy-paste.
@@ -15,13 +15,13 @@ This copies `.agents/` into your project and generates `CLAUDE.md` and `AGENTS.m
 No installation required — use `npx`:
 
 ```bash
-npx @lead-protocol/cli <command>
+npx @leadsolutions/lead-protocol <command>
 ```
 
 Or install globally:
 
 ```bash
-npm install -g @lead-protocol/cli
+npm install -g @leadsolutions/lead-protocol
 lead-protocol <command>
 ```
 

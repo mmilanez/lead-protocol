@@ -1,4 +1,4 @@
-// Faithful "production install" smoke test for @lead-protocol/cli.
+// Faithful "production install" smoke test for @leadsolutions/lead-protocol.
 //
 // `npm link` reflects your on-disk folder: it ignores the `files` allowlist and
 // the dependency split, so it can pass while a real install fails. This script
@@ -64,7 +64,7 @@ try {
     { cwd: tmp },
   );
 
-  const installed = path.join(tmp, "node_modules", "@lead-protocol", "cli");
+  const installed = path.join(tmp, "node_modules", "@leadsolutions", "lead-protocol");
   const bin = path.join(installed, "dist", "index.js");
   if (!existsSync(bin)) throw new Error(`installed bin not found: ${bin}`);
 
