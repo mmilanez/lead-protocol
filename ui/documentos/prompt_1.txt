@@ -1,0 +1,80 @@
+Crie uma interface web chamada Lead Protocol Console.
+
+Objetivo:
+Criar um painel visual para acompanhar sessões de agentes de IA usando o Lead Protocol, um protocolo de continuidade operacional em que cada agente deve ler as notas antes de iniciar e deixar notas antes de encerrar.
+
+Estilo visual:
+- SaaS moderno
+- Layout profissional
+- Menu lateral fixo
+- Modo escuro
+- Cards executivos
+- Aparência semelhante a painel DevOps/GitHub/GitLab
+
+Telas principais:
+1. Dashboard
+- Sessões ativas
+- Último handoff registrado
+- Decisões recentes
+- Alertas de conflito
+- Status dos arquivos do protocolo
+
+2. Agents
+- Lista de agentes
+- Actor ID
+- Agent ID
+- Última atividade
+- Status: ativo, pausado, finalizado
+
+3. Handoff
+- Visualização do arquivo handoff.md
+- Tarefa atual
+- Próximo passo
+- Bloqueios
+- Observações
+- Botão “Registrar novo handoff”
+
+4. Decisions
+- Leitura de decisions.jsonl
+- Linha do tempo de decisões
+- Filtro por agente
+- Filtro por módulo
+- Exportação JSONL
+
+5. Active Sessions
+- Visualização de sessões concorrentes
+- Detecção de conflito
+- Bloqueio preventivo
+- Histórico de takeover
+
+6. Rules
+- CORE_RULES.md
+- PROJECT_RULES.md
+- Modules
+- Validação de precedência das regras
+
+7. Validator
+- Verificar estrutura .agents/
+- Validar arquivos obrigatórios
+- Validar schema do handoff.md
+- Validar decisions.jsonl
+- Mostrar erros e recomendações
+
+Componentes:
+- Sidebar
+- Topbar
+- Cards
+- Tabela
+- Timeline
+- Editor Markdown
+- Visualizador JSONL
+- Alertas
+- Badges de status
+
+Tecnologias:
+- React
+- TypeScript
+- Tailwind CSS
+- Lucide icons
+
+Gere a tela inicial funcional com dados fictícios, mas realistas.

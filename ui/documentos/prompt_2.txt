@@ -1,0 +1,258 @@
+Crie uma interface SaaS moderna chamada "Lead Protocol - Real Time Graph".
+
+Objetivo:
+Visualizar em tempo real as relações entre agentes de IA, sessões, tarefas, decisões, arquivos, regras e alertas dentro do ecossistema Lead Protocol.
+
+Tema:
+- Dark Mode premium
+- Estilo futurista e corporativo
+- Inspirado em GitHub, Datadog, Linear, Vercel e Obsidian Graph
+- Design minimalista
+- Efeitos glow discretos
+- Tipografia moderna
+- Layout desktop responsivo
+
+Estrutura da Tela:
+
+═══════════════════════════════════════
+TOPO
+═══════════════════════════════════════
+
+Exibir:
+
+Logo Lead Protocol
+
+Status:
+🟢 Em execução
+
+Sessão atual:
+codex-171560
+
+Indicador:
+"Atualizando em tempo real"
+
+Botão:
+Auto Atualização ON/OFF
+
+Dropdown:
+Tipo de Layout
+
+- Force Directed
+- Hierarchical
+- Radial
+- Network
+
+Botão Full Screen
+
+═══════════════════════════════════════
+MENU LATERAL
+═══════════════════════════════════════
+
+Itens:
+
+📊 Dashboard
+🕸 Grafo
+🤖 Agents
+📁 Arquivos
+📝 Handoff
+📋 Decisões
+📚 Journal
+⚙ Rules
+🚨 Alertas
+🔍 Validator
+⚙ Configurações
+
+═══════════════════════════════════════
+PAINEL DE FILTROS
+═══════════════════════════════════════
+
+Filtros:
+
+Tipo de Nó
+
+- Agente
+- Sessão
+- Decisão
+- Arquivo
+- Regra
+- Tarefa
+- Alerta
+
+Tipo de Relação
+
+- criou
+- atualizou
+- depende
+- bloqueia
+- referencia
+- executa
+
+Período
+
+- Últimos 5 minutos
+- Última hora
+- Hoje
+- Esta semana
+
+Switch:
+Mostrar apenas ativos
+
+Botão:
+Aplicar Filtros
+
+═══════════════════════════════════════
+ÁREA CENTRAL
+═══════════════════════════════════════
+
+Exibir um grafo interativo em tempo real.
+
+Nós:
+
+🔵 Agente
+🟣 Sessão
+🟢 Decisão
+🟡 Arquivo
+🟠 Tarefa
+🟪 Regra
+🔴 Alerta
+
+Cada nó possui:
+
+- Glow suave
+- Ícone
+- Nome
+- Tooltip
+
+Relações:
+
+Linhas coloridas animadas
+
+Tipos:
+
+Azul:
+criou
+
+Verde:
+atualizou
+
+Amarelo:
+depende
+
+Vermelho:
+bloqueia
+
+Roxo:
+referencia
+
+As conexões devem pulsar para indicar atividade.
+
+Ao clicar em um nó:
+
+Abrir painel lateral de detalhes.
+
+═══════════════════════════════════════
+PAINEL DIREITO
+═══════════════════════════════════════
+
+Atividades Recentes
+
+14:32:45
+codex atualizou handoff.md
+
+14:32:10
+Conflito detectado
+
+14:31:45
+gpt-4 atualizou active_sessions.md
+
+14:31:12
+Nova decisão registrada
+
+14:30:58
+Tarefa atualizada
+
+Mini mapa do grafo
+
+═══════════════════════════════════════
+RODAPÉ ANALÍTICO
+═══════════════════════════════════════
+
+Timeline em tempo real
+
+Mostrar:
+
+- Eventos por minuto
+- Atualizações
+- Decisões
+- Conflitos
+- Alterações de arquivos
+
+Com gráfico temporal animado.
+
+═══════════════════════════════════════
+PAINEL DE DETALHES
+═══════════════════════════════════════
+
+Ao selecionar um nó:
+
+Exibir:
+
+Tipo
+ID
+Status
+Data criação
+Última atualização
+Relacionamentos
+Dependências
+Arquivos associados
+
+Botão:
+Ver detalhes completos
+
+Tecnologias:
+- React
+- TypeScript
+- Tailwind CSS
+- Lucide icons
+
+Bibliotecas de Grafos:
+
+- D3.js
+
+Tempo Real:
+
+- WebSocket
+- Socket.IO
+
+Animações:
+
+- Framer Motion
+
+═══════════════════════════════════════
+DADOS DE EXEMPLO
+═══════════════════════════════════════
+
+Agentes:
+- codex
+- gpt-4
+- claude-3
+
+Arquivos:
+- handoff.md
+- active_sessions.md
+- decisions.jsonl
+- CORE_RULES.md
+
+Tarefa:
+Implementar validação do protocolo
+
+Alerta:
+Conflito de edição simultânea
+
+Decisões:
+DEC-171560-001
+DEC-171560-002
+DEC-171560-003
+
+Resultado esperado:
+Uma tela altamente profissional semelhante a um observatório operacional de agentes de IA, mostrando em tempo real como sessões, decisões e arquivos se relacionam dentro do Lead Protocol.
