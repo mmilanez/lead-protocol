@@ -46,7 +46,7 @@ Node.js / middleware do Vite
 
 O mesmo código de leitura é usado nos dois modos:
 
-- Em desenvolvimento, `vite.live.config.ts` registra `/api/protocol` como middleware do Vite.
+- Em desenvolvimento, `vite.config.ts` registra `/api/protocol` como middleware do Vite.
 - Em produção, `server.mjs` publica a interface compilada e o endpoint `/api/protocol`.
 - A lógica compartilhada está em `api/protocol.mjs`.
 
@@ -85,7 +85,7 @@ npm run dev
 Abra:
 
 ```text
-http://localhost:5173/live-index.html
+http://localhost:5173
 ```
 
 O middleware do Vite atende a API no mesmo endereço e porta da interface.
@@ -174,11 +174,11 @@ ui/
 |  `- protocol.mjs       # Leitura e transformação dos dados
 |- src/
 |  |- LiveApp.tsx        # Interface conectada à API
-|  |- live-main.tsx      # Entrada React
+|  |- main.tsx           # Entrada React
 |  `- live-styles.css    # Estilos da interface
+|- dist/                 # Bundle de produção gerado pelo Vite
 |- server.mjs            # API e arquivos estáticos em produção
-|- vite.live.config.ts   # Build e API no desenvolvimento
-|- live-index.html       # HTML gerado para produção
+|- vite.config.ts        # Build e API no desenvolvimento
 `- package.json          # Comandos e dependências
 ```
 
@@ -186,15 +186,15 @@ ui/
 
 - A API é somente leitura e não altera arquivos em `.agents`.
 - O navegador não acessa o sistema de arquivos diretamente; a leitura ocorre no Node.js.
-- O servidor bloqueia caminhos estáticos que tentem sair da pasta `ui`.
+- O servidor publica somente arquivos de `dist` e bloqueia tentativas de sair desse diretório.
 - Não há autenticação. Use o console localmente ou adicione autenticação antes de expô-lo em uma rede.
 - Operações de escrita, como criar handoffs ou registrar sessões, não estão implementadas.
 
 ## Apache e XAMPP
 
-O Apache pode servir apenas os arquivos estáticos compilados, mas não executa a API Node.js. Para a solução completa, use `npm start`.
+O Apache pode servir os arquivos estáticos de `dist`, mas não executa a API Node.js. Para a solução completa, use `npm start`.
 
-Se o acesso precisar continuar pelo Apache, configure um proxy reverso de `/api/protocol` para o processo Node.js. Abrir somente `live-index.html` pelo Apache fará a interface procurar uma API que o Apache não fornece.
+Se o acesso precisar continuar pelo Apache, aponte os arquivos estáticos para `dist` e configure um proxy reverso de `/api/protocol` para o processo Node.js. Servir somente o HTML compilado fará a interface procurar uma API que o Apache não fornece.
 
 ## Solução de problemas
 

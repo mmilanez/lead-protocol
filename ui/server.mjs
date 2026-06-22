@@ -4,7 +4,7 @@ import { extname, join, normalize } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { createProtocolData } from './api/protocol.mjs'
 
-const root = fileURLToPath(new URL('.', import.meta.url))
+const root = fileURLToPath(new URL('./dist/', import.meta.url))
 const port = Number(process.env.PORT || 3000)
 const contentTypes = { '.css': 'text/css; charset=utf-8', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.json': 'application/json; charset=utf-8', '.svg': 'image/svg+xml' }
 
@@ -21,7 +21,7 @@ createServer((request, response) => {
     return
   }
 
-  const requested = url.pathname === '/' ? 'live-index.html' : decodeURIComponent(url.pathname.slice(1))
+  const requested = url.pathname === '/' ? 'index.html' : decodeURIComponent(url.pathname.slice(1))
   const safePath = normalize(requested)
   if (safePath.startsWith('..') || safePath.includes(':')) { response.writeHead(403).end('Forbidden'); return }
   const path = join(root, safePath)
