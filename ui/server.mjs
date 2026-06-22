@@ -17,7 +17,7 @@ createServer((request, response) => {
   const url = new URL(request.url ?? '/', `http://${request.headers.host ?? 'localhost'}`)
   if (url.pathname === '/api/protocol') {
     try { sendJson(response, 200, createProtocolData()) }
-    catch (error) { sendJson(response, 500, { error: error instanceof Error ? error.message : 'Erro interno.' }) }
+    catch (error) { sendJson(response, 500, { error: error instanceof Error ? error.message : 'Internal error.' }) }
     return
   }
 

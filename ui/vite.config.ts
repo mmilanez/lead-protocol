@@ -14,7 +14,7 @@ const protocolApi = () => ({
         response.end(JSON.stringify(createProtocolData()))
       } catch (error) {
         response.statusCode = 500
-        response.end(JSON.stringify({ error: error instanceof Error ? error.message : 'Erro interno.' }))
+        response.end(JSON.stringify({ error: error instanceof Error ? error.message : 'Internal error.' }))
       }
     })
   },

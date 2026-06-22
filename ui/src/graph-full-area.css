@@ -1,0 +1,8 @@
+.app.graph-active .content{max-width:none;margin:0;padding:14px 16px 24px}
+.app.graph-active .graph-page{width:100%;min-height:calc(100vh - 140px)}
+.app.graph-active .graph-grid{height:max(540px,calc(100vh - 345px));min-height:0}
+.app.graph-active .graph-canvas,.app.graph-active .graph-filters,.app.graph-active .graph-insights{min-height:0}
+.app.graph-active .graph-canvas .react-flow{height:100%}
+.app.graph-active .graph-filters,.app.graph-active .graph-insights{overflow-y:auto;scrollbar-color:#435066 #101721;scrollbar-width:thin}
+@media(max-width:1280px){.app.graph-active .graph-grid{height:auto}.app.graph-active .graph-canvas .react-flow{height:620px}.app.graph-active .graph-filters,.app.graph-active .graph-insights{overflow-y:visible}}
+@media(max-width:760px){.app.graph-active .content{padding:12px}.app.graph-active .graph-canvas .react-flow{height:520px}.app.graph-active .graph-page{min-height:0}}

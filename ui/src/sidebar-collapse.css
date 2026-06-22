@@ -1,0 +1,20 @@
+.app>aside,.app>main{transition:width .2s ease,margin-left .2s ease}
+.app>aside .brand>.sidebar-toggle{width:28px;height:28px;margin-left:auto;padding:0;display:grid;place-items:center;border:1px solid #303b4b;border-radius:6px;color:#8f9bab;background:#111925}
+.app>aside .brand>.sidebar-toggle:hover{color:#fff;border-color:#4b5870;background:#192332}
+.app>aside .brand>.sidebar-toggle svg{width:15px}
+.app>aside .brand>.mobile-close{display:none}
+.app>aside>footer span{white-space:nowrap}
+.app.sidebar-collapsed>aside{width:76px}
+.app.sidebar-collapsed>main{margin-left:76px}
+.app.sidebar-collapsed>aside .brand{padding:0 19px;position:relative}
+.app.sidebar-collapsed>aside .brand>span{display:none}
+.app.sidebar-collapsed>aside .brand>.sidebar-toggle{position:absolute;right:-13px;top:25px;border-color:#3a4659;border-radius:50%;background:#121b27;box-shadow:0 4px 14px #0008}
+.app.sidebar-collapsed>aside nav{padding-inline:10px}
+.app.sidebar-collapsed>aside nav button{padding:0;justify-content:center}
+.app.sidebar-collapsed>aside nav button>span{display:none}
+.app.sidebar-collapsed>aside nav button svg{width:20px;flex:none}
+.app.sidebar-collapsed>aside .status{display:none}
+.app.sidebar-collapsed>aside>footer{margin-top:auto;padding:0;justify-content:center}
+.app.sidebar-collapsed>aside>footer span{display:none}
+.app.sidebar-collapsed>aside>footer svg{width:16px}
+@media(max-width:760px){.app.sidebar-collapsed>aside{width:258px}.app.sidebar-collapsed>main{margin-left:0}.app.sidebar-collapsed>aside .brand{padding:0 21px}.app.sidebar-collapsed>aside .brand>span{display:grid}.app>aside .brand>.sidebar-toggle{display:none}.app>aside .brand>.mobile-close,.app.sidebar-collapsed>aside .brand>.mobile-close{display:block;margin-left:auto;border:0;background:none}.app.sidebar-collapsed>aside nav{padding:16px 13px}.app.sidebar-collapsed>aside nav button{padding:0 13px;justify-content:flex-start}.app.sidebar-collapsed>aside nav button>span{display:inline}.app.sidebar-collapsed>aside .status{display:block}.app.sidebar-collapsed>aside>footer{margin-top:0;padding:0 24px;justify-content:flex-start}.app.sidebar-collapsed>aside>footer span{display:inline}}

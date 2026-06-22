@@ -2,6 +2,15 @@
 
 Interface web local para visualizar o estado operacional do Lead Protocol. A aplicação lê os arquivos reais da pasta `.agents`, interpreta handoffs, sessões e decisões, e apresenta essas informações em um dashboard responsivo.
 
+## Estado da entrega
+
+- Implementação funcional conectada aos arquivos reais de `../.agents`.
+- Nenhum dado demonstrativo ou nó fictício é injetado pela interface.
+- Interface visual e mensagens geradas pela API padronizadas em inglês.
+- Conteúdo original dos arquivos operacionais preservado sem tradução automática.
+- Build de produção validado com `npm run build`.
+- Operação intencionalmente somente leitura.
+
 ## Tecnologias
 
 - React e TypeScript para a interface.
@@ -16,7 +25,9 @@ A solução não usa PHP nem frameworks adicionais no backend. A API utiliza ape
 ## Funcionalidades
 
 - Dashboard com métricas calculadas a partir do estado operacional atual.
+- Legendas e controles da interface padronizados em inglês; o conteúdo operacional original é exibido sem tradução automática.
 - Grafo operacional interativo construído exclusivamente com dados retornados pela API.
+- Tela do grafo em largura total, utilizando toda a área disponível entre a sidebar e a borda do viewport.
 - Seletor de visualização na tela principal para abrir o grafo em modo direcionado, orgânico ou radial.
 - Navegação dos cartões de métricas para as respectivas telas de detalhes.
 - Listagem de agentes e sessões ativas.
@@ -26,6 +37,7 @@ A solução não usa PHP nem frameworks adicionais no backend. A API utiliza ape
 - Verificação dos arquivos obrigatórios e apresentação de erros de integridade.
 - Detecção de tópicos concorrentes entre sessões ativas.
 - Atualização manual dos dados sem recarregar a página.
+- Barra lateral recolhível no desktop, com preferência persistida e tooltips no modo compacto.
 
 O produto é intencionalmente somente leitura. Todos os controles exibidos executam consultas, filtros, navegação ou atualização; a interface não apresenta ações de gravação simuladas.
 
@@ -41,7 +53,7 @@ A tela **Grafo** transforma o estado atual em nós e relações sem criar regist
 - agente → alerta: conflitos reais de escopo entre sessões;
 - agente → handoff ou próximo passo: estado atual do handoff.
 
-A tela oferece um resumo operacional legível e a opção de exibir o grafo completo. Também inclui layouts direcionado, orgânico e radial, filtros por tipo de nó e relação, zoom, arraste, minimapa, tela cheia, detalhes do nó selecionado e atualização automática a cada cinco segundos. O modo orgânico usa nós luminosos sem cartões e conexões curvas, aproximando-se de uma visualização livre. Tipos sem dados correspondentes não geram nós fictícios.
+A tela oferece um resumo operacional legível e a opção de exibir o grafo completo. Também inclui layouts direcionado, orgânico e radial, filtros por tipo de nó e relação, zoom, arraste, minimapa, tela cheia, detalhes do nó selecionado e atualização automática a cada cinco segundos. A área de navegação informa como mover e ampliar o grafo, enquanto a linha do tempo horizontal apresenta horário, decisão e agente para cada evento real. O modo orgânico usa nós luminosos sem cartões e conexões curvas, aproximando-se de uma visualização livre. Tipos sem dados correspondentes não geram nós fictícios.
 
 ## Arquitetura
 
@@ -194,6 +206,9 @@ ui/
 |  |- GraphView.tsx      # Grafo derivado dos dados operacionais
 |  |- graph.css          # Layout e responsividade do grafo
 |  |- graph-launcher.css # Seletor do grafo na Visão geral
+|  |- graph-timeline.css # Navegação e linha do tempo rolável
+|  |- graph-full-area.css # Área ampla e altura responsiva do grafo
+|  |- sidebar-collapse.css # Barra lateral recolhível
 |  |- main.tsx           # Entrada React
 |  `- live-styles.css    # Estilos da interface
 |- dist/                 # Bundle de produção gerado pelo Vite
@@ -218,7 +233,7 @@ Se o acesso precisar continuar pelo Apache, aponte os arquivos estáticos para `
 
 ## Solução de problemas
 
-### `Diretório .agents não encontrado`
+### `.agents directory not found.`
 
 Confirme que `.agents` e `ui` são pastas irmãs dentro do mesmo repositório.
 

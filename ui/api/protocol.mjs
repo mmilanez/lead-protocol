@@ -20,15 +20,15 @@ function fileExists(path) {
 
 function relativeTime(timestamp) {
   const seconds = Math.max(0, Math.floor((Date.now() - timestamp) / 1000))
-  if (seconds < 60) return 'agora'
-  if (seconds < 3600) return `há ${Math.floor(seconds / 60)} min`
-  if (seconds < 86400) return `há ${Math.floor(seconds / 3600)} h`
-  return `há ${Math.floor(seconds / 86400)} dias`
+  if (seconds < 60) return 'now'
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} h ago`
+  return `${Math.floor(seconds / 86400)} days ago`
 }
 
 function markdownField(content, field) {
   const escaped = field.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-  return content.match(new RegExp(`^\\*\\*${escaped}:\\*\\*\\s*(.+)$`, 'im'))?.[1].trim() ?? 'Não informado'
+  return content.match(new RegExp(`^\\*\\*${escaped}:\\*\\*\\s*(.+)$`, 'im'))?.[1].trim() ?? 'Not provided'
 }
 
 function cleanAgent(signature) {
@@ -51,12 +51,12 @@ function localDate(date = new Date()) {
 }
 
 export function createProtocolData() {
-  if (!existsSync(agentsRoot) || !statSync(agentsRoot).isDirectory()) throw new Error('Diretório .agents não encontrado.')
+  if (!existsSync(agentsRoot) || !statSync(agentsRoot).isDirectory()) throw new Error('.agents directory not found.')
 
   const files = requiredFiles.map(relativePath => {
     const path = join(agentsRoot, ...relativePath.split('/'))
     const exists = fileExists(path)
-    return { path: `.agents/${relativePath}`, exists, status: exists ? 'OK' : 'Ausente', updated: exists ? relativeTime(statSync(path).mtimeMs) : '—' }
+    return { path: `.agents/${relativePath}`, exists, status: exists ? 'OK' : 'Missing', updated: exists ? relativeTime(statSync(path).mtimeMs) : '—' }
   })
 
   const decisions = readText(join(agentsRoot, 'decisions.jsonl')).split(/\r?\n/).map(line => line.trim()).filter(Boolean).flatMap((line, index) => {
@@ -66,9 +66,9 @@ export function createProtocolData() {
       const validDate = date && !Number.isNaN(date.getTime())
       return [{
         timestamp: entry.timestamp ?? '',
-        time: validDate ? date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '—',
+        time: validDate ? date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
         id: validDate ? `DEC-${localDate(date).replaceAll('-', '')}-${String(date.getHours()).padStart(2, '0')}${String(date.getMinutes()).padStart(2, '0')}${String(date.getSeconds()).padStart(2, '0')}` : `DEC-${index}`,
-        decision: entry.decision ?? 'Decisão sem descrição', rationale: entry.rationale ?? '',
+        decision: entry.decision ?? 'Decision without description', rationale: entry.rationale ?? '',
         agent: cleanAgent(String(entry.agent ?? 'unknown')), files: entry.files_affected ?? [], status: entry.status ?? 'unknown',
       }]
     } catch { return [] }
@@ -93,7 +93,7 @@ export function createProtocolData() {
     if (!match) return []
     const columns = match[1].split('|').map(column => column.trim())
     if (columns.length !== 5 || columns[0] === 'Session ID' || columns[0].startsWith('---')) return []
-    return [{ id: columns[0], agent: cleanAgent(columns[1]), started: columns[2], topic: columns[3], checkpoint: columns[4], status: 'Ativo' }]
+    return [{ id: columns[0], agent: cleanAgent(columns[1]), started: columns[2], topic: columns[3], checkpoint: columns[4], status: 'Active' }]
   })
 
   const ownersByTopic = new Map()
