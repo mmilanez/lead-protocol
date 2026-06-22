@@ -8,6 +8,7 @@ Interface web local para visualizar o estado operacional do Lead Protocol. A apl
 - Vite para desenvolvimento e build.
 - Tailwind CSS e CSS próprio para estilos responsivos.
 - Lucide React para os ícones.
+- React Flow para o grafo interativo, zoom, minimapa e movimentação dos nós.
 - Node.js para a API e o servidor de produção.
 
 A solução não usa PHP nem frameworks adicionais no backend. A API utiliza apenas módulos nativos do Node.js.
@@ -15,6 +16,8 @@ A solução não usa PHP nem frameworks adicionais no backend. A API utiliza ape
 ## Funcionalidades
 
 - Dashboard com métricas calculadas a partir do estado operacional atual.
+- Grafo operacional interativo construído exclusivamente com dados retornados pela API.
+- Seletor de visualização na tela principal para abrir o grafo em modo direcionado, orgânico ou radial.
 - Navegação dos cartões de métricas para as respectivas telas de detalhes.
 - Listagem de agentes e sessões ativas.
 - Visualização do handoff original e de seu resumo interpretado.
@@ -25,6 +28,20 @@ A solução não usa PHP nem frameworks adicionais no backend. A API utiliza ape
 - Atualização manual dos dados sem recarregar a página.
 
 O produto é intencionalmente somente leitura. Todos os controles exibidos executam consultas, filtros, navegação ou atualização; a interface não apresenta ações de gravação simuladas.
+
+## Grafo operacional
+
+A tela **Grafo** transforma o estado atual em nós e relações sem criar registros demonstrativos:
+
+- agente → sessão: relação encontrada em `active_sessions.md`;
+- sessão → tarefa: tópico real da sessão;
+- agente → decisão: autor registrado em `decisions.jsonl`;
+- decisão → arquivo: itens reais de `files_affected`;
+- regra → arquivo: correspondência com os arquivos de regras encontrados;
+- agente → alerta: conflitos reais de escopo entre sessões;
+- agente → handoff ou próximo passo: estado atual do handoff.
+
+A tela oferece um resumo operacional legível e a opção de exibir o grafo completo. Também inclui layouts direcionado, orgânico e radial, filtros por tipo de nó e relação, zoom, arraste, minimapa, tela cheia, detalhes do nó selecionado e atualização automática a cada cinco segundos. O modo orgânico usa nós luminosos sem cartões e conexões curvas, aproximando-se de uma visualização livre. Tipos sem dados correspondentes não geram nós fictícios.
 
 ## Arquitetura
 
@@ -174,6 +191,9 @@ ui/
 |  `- protocol.mjs       # Leitura e transformação dos dados
 |- src/
 |  |- LiveApp.tsx        # Interface conectada à API
+|  |- GraphView.tsx      # Grafo derivado dos dados operacionais
+|  |- graph.css          # Layout e responsividade do grafo
+|  |- graph-launcher.css # Seletor do grafo na Visão geral
 |  |- main.tsx           # Entrada React
 |  `- live-styles.css    # Estilos da interface
 |- dist/                 # Bundle de produção gerado pelo Vite

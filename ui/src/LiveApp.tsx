@@ -1,7 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { Activity, AlertTriangle, ArrowRight, Bot, CheckCircle2, CircleDot, ClipboardCheck, Code2, FileCode2, FileText, GitBranch, GitCommitHorizontal, Handshake, LayoutDashboard, LockKeyhole, Menu, RefreshCw, ShieldCheck, Users, X } from 'lucide-react'
+import { Activity, AlertTriangle, ArrowRight, Bot, CheckCircle2, CircleDot, ClipboardCheck, Code2, FileCode2, FileText, GitBranch, GitCommitHorizontal, Handshake, LayoutDashboard, LockKeyhole, Menu, Network, RefreshCw, ShieldCheck, Users, X } from 'lucide-react'
+import GraphView from './GraphView'
+import './graph-launcher.css'
 
-type View = 'Dashboard' | 'Agents' | 'Active Sessions' | 'Handoff' | 'Decisions' | 'Rules' | 'Validator'
+type View = 'Dashboard' | 'Graph' | 'Agents' | 'Active Sessions' | 'Handoff' | 'Decisions' | 'Rules' | 'Validator'
+type GraphLayout = 'directed' | 'organic' | 'radial'
 type ProtocolData = {
   generatedAt: string
   metrics: { activeSessions: number; todayDecisions: number; protocolPercent: number; alerts: number }
@@ -16,11 +19,14 @@ type ProtocolData = {
   validator: { passed: number; errors: number; checks: { path: string; exists: boolean; status: string; updated: string }[] }
 }
 
-const nav: { label: View; icon: typeof LayoutDashboard }[] = [
-  { label: 'Dashboard', icon: LayoutDashboard }, { label: 'Agents', icon: Bot },
-  { label: 'Active Sessions', icon: Activity }, { label: 'Handoff', icon: Handshake },
-  { label: 'Decisions', icon: GitCommitHorizontal }, { label: 'Rules', icon: FileCode2 },
-  { label: 'Validator', icon: ClipboardCheck },
+const viewLabels: Record<View, string> = { Dashboard: 'Visão geral', Graph: 'Grafo', Agents: 'Agentes', 'Active Sessions': 'Sessões', Handoff: 'Handoff', Decisions: 'Decisões', Rules: 'Regras', Validator: 'Validador' }
+const viewSlugs: Record<View, string> = { Dashboard: 'dashboard', Graph: 'graph', Agents: 'agents', 'Active Sessions': 'sessions', Handoff: 'handoff', Decisions: 'decisions', Rules: 'rules', Validator: 'validator' }
+const initialView = () => (Object.keys(viewSlugs) as View[]).find(view => viewSlugs[view] === window.location.hash.slice(1)) ?? 'Dashboard'
+const nav: { view: View; icon: typeof LayoutDashboard }[] = [
+  { view: 'Dashboard', icon: LayoutDashboard }, { view: 'Graph', icon: Network }, { view: 'Agents', icon: Bot },
+  { view: 'Active Sessions', icon: Activity }, { view: 'Handoff', icon: Handshake },
+  { view: 'Decisions', icon: GitCommitHorizontal }, { view: 'Rules', icon: FileCode2 },
+  { view: 'Validator', icon: ClipboardCheck },
 ]
 
 function Panel({ title, path, children }: { title: string; path?: string; children: ReactNode }) {
@@ -54,10 +60,15 @@ function Conflict({ data, go }: { data: ProtocolData; go?: (v: View) => void }) 
   return <div className="warning"><AlertTriangle /><div><b>Atenção: conflito no escopo “{conflict.topic}”</b><span>Agentes envolvidos: {conflict.agents.join(', ')}.</span></div>{go && <button onClick={() => go('Active Sessions')}>Ver detalhes</button>}</div>
 }
 
-function Dashboard({ data, go, reload }: { data: ProtocolData; go: (v: View) => void; reload: () => void }) {
+function Dashboard({ data, go, reload, openGraph }: { data: ProtocolData; go: (v: View) => void; reload: () => void; openGraph: (layout: GraphLayout) => void }) {
   const h = data.handoff
+  const [graphLayout, setGraphLayout] = useState<GraphLayout>(() => {
+    const value = new URLSearchParams(window.location.search).get('layout')
+    return value === 'organic' || value === 'radial' ? value : 'directed'
+  })
   return <>
     <div className="metrics"><Metric icon={Users} label="Sessões ativas" value={String(data.metrics.activeSessions)} tone="violet" onClick={() => go('Active Sessions')} /><Metric icon={GitCommitHorizontal} label="Decisões hoje" value={String(data.metrics.todayDecisions)} tone="blue" onClick={() => go('Decisions')} /><Metric icon={ShieldCheck} label="Integridade" value={`${data.metrics.protocolPercent}%`} tone="green" onClick={() => go('Validator')} /><Metric icon={AlertTriangle} label="Alertas" value={String(data.metrics.alerts)} tone="amber" onClick={() => go('Active Sessions')} /></div>
+    <section className="graph-launcher"><div><span><Network /></span><p><b>Grafo operacional</b><small>Explore agentes, decisões, arquivos e relações com dados atuais.</small></p></div><label>Visualização<select value={graphLayout} onChange={event => setGraphLayout(event.target.value as GraphLayout)}><option value="directed">Direcionado</option><option value="organic">Orgânico</option><option value="radial">Radial</option></select></label><button className="primary" onClick={() => openGraph(graphLayout)}>Abrir grafo <ArrowRight /></button></section>
     <div className="grid"><div className="stack"><Panel title="Último handoff" path={h?.path ?? '.agents/local/*/*/handoff.md'}>{h ? <><div className="markdown"><b>Última ação:</b><p>{h.lastAction}</p><b>Próximo passo:</b><p>{h.pendingStep}</p><b>Bloqueios/Contexto:</b><p>{h.blockers}</p><b>Threads abertas:</b><p>{h.openThreads}</p></div><footer><span>Atualizado {h.updated} por {h.agent}</span><button className="primary" onClick={() => go('Handoff')}>Abrir handoff</button></footer></> : <Empty>Nenhum handoff encontrado.</Empty>}</Panel><Panel title="Decisões recentes" path=".agents/decisions.jsonl"><Timeline decisions={data.decisions} limit={8} /><button className="link" onClick={() => go('Decisions')}>Ver todas as decisões <ArrowRight /></button></Panel></div>
       <div className="stack"><Panel title="Sessões ativas" path=".agents/sessions/active_sessions.md"><SessionTable data={data} /><button className="link" onClick={() => go('Active Sessions')}>Ver todas as sessões <ArrowRight /></button></Panel><Panel title="Arquivos do protocolo"><div className="files">{data.files.map(file => <div key={file.path}><FileText /><b>{file.path}</b><span>{file.updated}</span><em className={file.exists ? '' : 'missing'}><CircleDot /> {file.status}</em></div>)}</div><button className="link" onClick={() => go('Rules')}>Ver regras <ArrowRight /></button></Panel></div></div>
     <Conflict data={data} go={go} /><button className="validate" onClick={reload}><RefreshCw /> Atualizar dados agora</button>
@@ -89,6 +100,7 @@ function DecisionsPage({ data }: { data: ProtocolData }) {
 }
 
 function Page({ view, data, reload }: { view: Exclude<View, 'Dashboard'>; data: ProtocolData; reload: () => void }) {
+  if (view === 'Graph') return <GraphView data={data} reload={reload} />
   if (view === 'Agents') return <Panel title="Agentes encontrados" path=".agents/local/*/*/handoff.md"><SessionTable data={data} agents /></Panel>
   if (view === 'Active Sessions') return <div className="stack"><Conflict data={data} /><Panel title="Sessões concorrentes" path=".agents/sessions/active_sessions.md"><SessionTable data={data} /></Panel></div>
   if (view === 'Handoff') {
@@ -101,7 +113,7 @@ function Page({ view, data, reload }: { view: Exclude<View, 'Dashboard'>; data: 
 }
 
 export default function LiveApp() {
-  const [view, setView] = useState<View>('Dashboard'), [menu, setMenu] = useState(false)
+  const [view, setView] = useState<View>(initialView), [menu, setMenu] = useState(false)
   const [data, setData] = useState<ProtocolData | null>(null), [error, setError] = useState(''), [loading, setLoading] = useState(true)
   const load = async () => {
     setLoading(true)
@@ -118,9 +130,10 @@ export default function LiveApp() {
     }
   }
   useEffect(() => { void load() }, [])
-  const go = (v: View) => { setView(v); setMenu(false); window.scrollTo(0, 0) }
+  const go = (v: View) => { setView(v); setMenu(false); window.history.replaceState(null, '', `#${viewSlugs[v]}`); window.scrollTo(0, 0) }
+  const openGraph = (layout: GraphLayout) => { const url = new URL(window.location.href); if (layout === 'directed') url.searchParams.delete('layout'); else url.searchParams.set('layout', layout); window.history.replaceState(null, '', url); go('Graph') }
   const actor = data?.handoff?.actor ?? 'local'
-  return <div className="app"><aside className={menu ? 'open' : ''}><div className="brand"><b><GitBranch /></b><span><strong>Lead Protocol</strong><small>Console</small></span><button aria-label="Fechar menu" onClick={() => setMenu(false)}><X /></button></div><nav>{nav.map(({ label, icon: Icon }) => <button key={label} className={view === label ? 'active' : ''} onClick={() => go(label)}><Icon />{label}</button>)}</nav><div className="status"><small>STATUS DO PROTOCOLO</small><b className={data?.protocolValid ? '' : 'invalid'}>{data?.protocolValid ? <CheckCircle2 /> : <AlertTriangle />}{data?.protocolValid ? 'Válido' : 'Com erros'}</b><p>Monitoramento atualizado sob demanda.</p><button onClick={load} disabled={loading}>{loading ? 'Atualizando...' : 'Atualizar agora'}</button></div><footer><LockKeyhole /> Ambiente local protegido</footer></aside>{menu && <button className="scrim" aria-label="Fechar menu" onClick={() => setMenu(false)} />}
-    <main><header className="topbar"><div><button className="menu" aria-label="Abrir menu" onClick={() => setMenu(true)}><Menu /></button><span><h1>{view}</h1><p>Visão operacional · {loading ? 'atualizando...' : 'sincronizado'}</p></span></div><div className="profile"><span><CircleDot /> {loading ? 'Atualizando' : 'Sincronizado'}</span><b>{actor.slice(0, 2).toUpperCase()}</b><strong>{actor}</strong></div></header><div className="content">{error ? <div className="warning"><AlertTriangle /><div><b>Falha ao carregar dados</b><span>{error}</span></div><button onClick={load}>Tentar novamente</button></div> : !data ? <div className="loading"><RefreshCw /> Carregando dados operacionais...</div> : view === 'Dashboard' ? <Dashboard data={data} go={go} reload={load} /> : <Page view={view} data={data} reload={load} />}</div></main>
+  return <div className="app"><aside className={menu ? 'open' : ''}><div className="brand"><b><GitBranch /></b><span><strong>Lead Protocol</strong><small>Console</small></span><button aria-label="Fechar menu" onClick={() => setMenu(false)}><X /></button></div><nav>{nav.map(({ view: target, icon: Icon }) => <button key={target} className={view === target ? 'active' : ''} onClick={() => go(target)}><Icon />{viewLabels[target]}</button>)}</nav><div className="status"><small>STATUS DO PROTOCOLO</small><b className={data?.protocolValid ? '' : 'invalid'}>{data?.protocolValid ? <CheckCircle2 /> : <AlertTriangle />}{data?.protocolValid ? 'Válido' : 'Com erros'}</b><p>Monitoramento atualizado sob demanda.</p><button onClick={load} disabled={loading}>{loading ? 'Atualizando...' : 'Atualizar agora'}</button></div><footer><LockKeyhole /> Ambiente local protegido</footer></aside>{menu && <button className="scrim" aria-label="Fechar menu" onClick={() => setMenu(false)} />}
+    <main><header className="topbar"><div><button className="menu" aria-label="Abrir menu" onClick={() => setMenu(true)}><Menu /></button><span><h1>{viewLabels[view]}</h1><p>Visão operacional · {loading ? 'atualizando...' : 'sincronizado'}</p></span></div><div className="profile"><span><CircleDot /> {loading ? 'Atualizando' : 'Sincronizado'}</span><b>{actor.slice(0, 2).toUpperCase()}</b><strong>{actor}</strong></div></header><div className="content">{error ? <div className="warning"><AlertTriangle /><div><b>Falha ao carregar dados</b><span>{error}</span></div><button onClick={load}>Tentar novamente</button></div> : !data ? <div className="loading"><RefreshCw /> Carregando dados operacionais...</div> : view === 'Dashboard' ? <Dashboard data={data} go={go} reload={load} openGraph={openGraph} /> : <Page view={view} data={data} reload={load} />}</div></main>
   </div>
 }

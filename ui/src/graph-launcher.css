@@ -1,0 +1,12 @@
+.graph-launcher{min-height:78px;margin-bottom:20px;padding:14px 17px;display:flex;align-items:center;gap:18px;border:1px solid #2a3545;border-radius:11px;background:linear-gradient(115deg,#151d2a,#101721)}
+.graph-launcher>div{min-width:0;flex:1;display:flex;align-items:center;gap:11px}
+.graph-launcher>div>span{width:42px;height:42px;flex:none;display:grid;place-items:center;border-radius:11px;color:#a79aff;background:#7667e52b}
+.graph-launcher>div svg{width:21px}
+.graph-launcher p{margin:0;display:grid;gap:4px}
+.graph-launcher p b{font-size:13px}
+.graph-launcher p small{color:#919dad;font-size:10px}
+.graph-launcher label{display:grid;gap:5px;color:#8d99aa;font-size:9px}
+.graph-launcher select{height:34px;min-width:145px;padding:0 9px;border:1px solid #303c4d;border-radius:6px;color:#d2d9e3;background:#111925}
+.graph-launcher>button{height:36px;display:flex;align-items:center;gap:8px}
+.graph-launcher>button svg{width:14px}
+@media(max-width:700px){.graph-launcher{align-items:stretch;flex-direction:column}.graph-launcher label{width:100%}.graph-launcher select,.graph-launcher>button{width:100%}.graph-launcher>button{justify-content:center}}
