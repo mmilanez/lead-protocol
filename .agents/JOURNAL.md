@@ -21,3 +21,16 @@ When this file grows past ~500 lines, move the older entries into `archive/JOURN
 ---
 
 *(No entries yet — this file accumulates as the project ships.)*
+
+## 2026-06-23 | alvar@LS-SJRP-NTB01 / Codex | Organic graph edges anchored to visible nodes
+
+Corrected the operational graph so organic-layout relationships connect to the visible circular icons instead of an invisible full-width node boundary. This restores visual traceability between agents, sessions, tasks, and their relationships while preserving the existing layouts and read-only data model.
+Refs: commit `feed3e1`; `ui/src/GraphView.tsx`, `ui/src/graph.css`, `ui/dist/`
+
+## 2026-06-23 | alvar@LS-SJRP-NTB01 / Claude | Full structural analysis of Console UI
+
+Delivered a complete architectural audit of the Lead Protocol Console frontend: LiveApp.tsx monolith
+(~1200+ LOC mixing layout, state, fetching, and business logic), GraphView.tsx, minified CSS, REST
+polling data flow, and hardcoded graph node positions. Identified missing error boundaries and
+duplicate TypeScript types. Established the structural baseline for future refactoring decisions.
+Refs: `ui/src/LiveApp.tsx`, `ui/src/GraphView.tsx`, `ui/src/graph.css`

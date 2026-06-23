@@ -20,3 +20,11 @@ When this file grows past ~300 lines, move older entries into `archive/LESSONS-<
 ---
 
 *(No lessons yet — this file accumulates as reusable knowledge emerges.)*
+
+## 2026-06-23 | alvar@LS-SJRP-NTB01 | tags: session-close, checklist, protocol
+
+Agents must execute the session close checklist proactively before the context window ends — not
+wait for the user to notice a stale row in active_sessions.md. If a session ends without closing,
+the active_sessions.md row persists indefinitely and creates false concurrency signals for other
+agents. Mitigation: treat the close checklist as the last mandatory action of every session,
+even when the user goes quiet.
