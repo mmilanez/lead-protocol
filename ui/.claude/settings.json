@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/xampp/htdocs/git/lead-protocol/.agents/sessions/**)",
+      "Read(//c/xampp/htdocs/git/lead-protocol/.agents/**)"
+    ],
+    "additionalDirectories": [
+      "c:\\xampp\\htdocs\\git\\lead-protocol\\.agents\\sessions",
+      "c:\\xampp\\htdocs\\git\\lead-protocol\\.agents\\local\\alvar@LS-SJRP-NTB01\\claude",
+      "c:\\xampp\\htdocs\\git\\lead-protocol\\.agents"
+    ]
+  }
+}
