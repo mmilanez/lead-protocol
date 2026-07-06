@@ -11,6 +11,38 @@ re-stated here.
 
 ---
 
+## [2.2.0] - 2026-07-06
+
+CLI update command. No kernel or schema changes: this release only touches
+the CLI package.
+
+### Added
+
+- **`lead-protocol update`** (CLI): updates an existing installation to the
+  protocol version bundled with the CLI, honoring the three-layer state
+  model. The framework layer (`CORE_RULES.md`, `PROTOCOL_RULES.md`,
+  `modules/`, `schemas/`, `scripts/`) is always refreshed; project-layer
+  files are never overwritten (missing seeds are created); `.agents/local/`
+  is never touched. Supports `--yes` and `--dry-run`, reports every file as
+  `updated` / `created` / `unchanged`, and lists framework-dir files absent
+  from the bundled release as warnings without deleting them.
+- Unit test suite for the update planner (`node --test`, zero new runtime
+  dependencies) plus new `test-pack.mjs` scenarios covering the update flow
+  and the `init` guard.
+
+### Changed
+
+- **`lead-protocol init` no longer overwrites an existing installation.**
+  Previously, confirming the "already installed" prompt replaced the whole
+  `.agents/` tree with blank templates, destroying project-layer files
+  (`PROJECT_RULES.md`, `JOURNAL.md`, `decisions.jsonl`, ...). `init` now
+  refuses and points to `update`; a full reinstall remains available behind
+  `init --force`, with an explicit warning listing what will be lost.
+- CLI package version bumped to `2.2.0`; `@types/node` added to the CLI dev
+  dependencies (typechecking previously relied on ambient Node types).
+
+---
+
 ## [2.0.3] — 2026-06-01
 
 Security patch and public-repo polish. No kernel or schema changes — the

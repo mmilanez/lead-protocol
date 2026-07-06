@@ -32,8 +32,9 @@ lead-protocol <command>
 Initialize Lead Protocol in the current directory.
 
 ```bash
-lead-protocol init        # Asks for confirmation
-lead-protocol init --yes  # Skip confirmation
+lead-protocol init          # Asks for confirmation
+lead-protocol init --yes    # Skip confirmation
+lead-protocol init --force  # Reinstall from scratch (destructive, see below)
 ```
 
 What it does:
@@ -41,7 +42,25 @@ What it does:
 - Creates `CLAUDE.md` and `AGENTS.md` with `<lead-protocol>` tagged boot procedures
 - Creates `.gitignore` with the protocol entries if none exists, or appends any missing ones if it already exists
 
-If Lead Protocol is already installed, you'll be asked before overwriting. Existing content in `CLAUDE.md` / `AGENTS.md` outside the `<lead-protocol>` tags is always preserved.
+If Lead Protocol is already installed, `init` refuses to run and points you to `update`. To reinstall from scratch, pass `--force`: this overwrites the project layer (`PROJECT_RULES.md`, `AGENTS_MAP.md`, `JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`, `checkpoints/`, `sessions/`) with blank templates, so you will be warned and asked to confirm. Existing content in `CLAUDE.md` / `AGENTS.md` outside the `<lead-protocol>` tags is always preserved.
+
+### `update`
+
+Update an existing installation to the protocol version bundled with this CLI.
+
+```bash
+lead-protocol update            # Asks for confirmation
+lead-protocol update --yes      # Skip confirmation (CI, scripts)
+lead-protocol update --dry-run  # Show what would change without writing
+```
+
+What it does, following the protocol's three-layer state model:
+- **Framework layer** (`CORE_RULES.md`, `PROTOCOL_RULES.md`, `modules/`, `schemas/`, `scripts/`): always refreshed to the bundled release. Local edits to these files are overwritten (the protocol reserves framework changes for releases); use git to recover them if needed.
+- **Project layer** (`PROJECT_RULES.md`, `AGENTS_MAP.md`, `JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`, `checkpoints/`, `sessions/`): never overwritten. If a new release introduces a project-layer seed file the installation is missing, it is created.
+- **Per-pair state** (`.agents/local/`): never touched.
+- Refreshes the `<lead-protocol>` blocks in `CLAUDE.md` / `AGENTS.md` and re-checks the `.gitignore` entries.
+
+Every file is reported as `updated`, `created`, or `unchanged`. Files found under `modules/`, `schemas/`, or `scripts/` that are absent from the bundled release (leftovers from an older version, or your own extensions) are listed as a warning and never deleted.
 
 ### `handoff`
 

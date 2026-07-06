@@ -1,7 +1,9 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  // lib/updater.ts is built as its own entry so the node:test suite in
+  // test/ can import the exact code that ships.
+  entry: ["src/index.ts", "src/lib/updater.ts"],
   format: ["esm"],
   target: "node18",
   outDir: "dist",
