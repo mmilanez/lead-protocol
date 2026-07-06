@@ -1,6 +1,7 @@
 import { createRequire } from "node:module";
 import { Command } from "commander";
 import { registerInitCommand } from "./commands/init.js";
+import { registerUpdateCommand } from "./commands/update.js";
 import { registerHandoffCommand } from "./commands/handoff.js";
 import { registerValidateCommand } from "./commands/validate.js";
 import { registerStatusCommand } from "./commands/status.js";
@@ -16,6 +17,7 @@ program
   .version(pkg.version, "-v, --version");
 
 registerInitCommand(program);
+registerUpdateCommand(program, pkg.version);
 registerHandoffCommand(program);
 registerValidateCommand(program);
 registerStatusCommand(program);
