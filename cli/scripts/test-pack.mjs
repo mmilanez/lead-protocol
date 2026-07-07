@@ -34,6 +34,17 @@ function run(label, cmd, opts = {}) {
   execSync(cmd, { stdio: "inherit", ...opts });
 }
 
+function runExpectFail(label, cmd, opts = {}) {
+  console.log(`\n[test-pack] ${label} (expected to fail)\n[test-pack] $ ${cmd}`);
+  try {
+    execSync(cmd, { stdio: "inherit", ...opts });
+  } catch {
+    console.log(`[test-pack] OK: failed as expected`);
+    return;
+  }
+  throw new Error(`${label}: command succeeded but was expected to fail`);
+}
+
 const tmp = mkdtempSync(path.join(os.tmpdir(), "lp-testpack-"));
 
 try {
@@ -94,6 +105,36 @@ try {
 
   run("validate", `node ${q(bin)} validate`, { cwd: target });
   run("status", `node ${q(bin)} status`, { cwd: target });
+
+  // 5. Structural integrity checks (§P3 append-at-tail invariants):
+  // corrupt each state file the way real-world merges and bad appends do,
+  // expect `validate` to fail, restore, and expect it to pass again.
+  const stateFile = (...segments) => path.join(target, ".agents", ...segments);
+  const corruptions = [
+    {
+      label: "conflict markers in decisions.jsonl",
+      file: stateFile("decisions.jsonl"),
+      corrupt: (text) =>
+        `<<<<<<< HEAD\n${text}=======\n{"other":"side"}\n>>>>>>> feature\n`,
+    },
+    {
+      label: "missing final newline in LESSONS.md",
+      file: stateFile("LESSONS.md"),
+      corrupt: (text) => text.replace(/\n+$/, ""),
+    },
+    {
+      label: "duplicated top-level header in JOURNAL.md",
+      file: stateFile("JOURNAL.md"),
+      corrupt: (text) => `${text}\n# JOURNAL.md (duplicated by a bad merge)\n`,
+    },
+  ];
+  for (const { label, file, corrupt } of corruptions) {
+    const original = readFileSync(file, "utf-8");
+    writeFileSync(file, corrupt(original));
+    runExpectFail(`validate with ${label}`, `node ${q(bin)} validate`, { cwd: target });
+    writeFileSync(file, original);
+  }
+  run("validate after restoring state files", `node ${q(bin)} validate`, { cwd: target });
 
   console.log("\n[test-pack] PASS: the published artifact installs and runs like production.");
 } catch (err) {

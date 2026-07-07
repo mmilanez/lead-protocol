@@ -1,6 +1,6 @@
 # PROTOCOL_RULES.md — Lead Protocol framework rules (generic)
 
-> Version: 2.0.1 | Updated: 2026-06-01
+> Version: 2.1.0 | Updated: 2026-07-07
 > Scope: Substrate-agnostic kernel. Opt-in modules live in `modules/` and are activated via `PROJECT_RULES.md §J8`.
 > This file contains no project-specific content — that lives in `PROJECT_RULES.md`.
 
@@ -105,6 +105,16 @@ Consequences:
 - `LESSONS.md` has no top-of-file table of contents. Queries go through `grep` over inline tags (`grep -A 10 "tags:.*rate-limit" LESSONS.md`).
 - `decisions.jsonl` is JSON Lines, one object per line (see *Decisions log* below), not a JSON array — a JSON array cannot be appended to atomically.
 
+#### Integrity invariants *(v2.1.0+)*
+
+The append-at-tail rule implies three invariants that every writer must uphold, on every substrate:
+
+1. **Correction is a new entry, never a rewrite.** An erroneous past entry is corrected by appending a new entry that references it and states the correction (in `decisions.jsonl`, a new line whose rationale points at the entry it supersedes; in `JOURNAL.md` / `LESSONS.md`, a new dated entry). Rewriting or deleting past content silently invalidates what other agents already read, and rewrites race against concurrent appends.
+2. **Every append ends with a newline.** The file must always end with a final newline. Without it, the next append glues onto the last line; in `decisions.jsonl` that produces two JSON objects on one line, which is structurally invalid JSONL.
+3. **Structural corruption blocks new appends.** Unresolved merge conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`), glued JSONL lines, and a duplicated top-of-file header are structural corruption. On finding any of them, fix the structure first (minimal repair, preserving both sides' entries) and log the repair in `decisions.jsonl` before appending anything else. Never build on corrupted state (see *Recovery mode*).
+
+Enforcement: `scripts/validate_state.py` (and the CLI's `lead-protocol validate`) detect all three violations across `decisions.jsonl`, `JOURNAL.md`, `LESSONS.md`, `sessions/active_sessions.md`, and per-pair handoffs. Projects on a git substrate additionally get merge-level protection (see `modules/git-substrate.md §M-git-7`).
+
 ### Handoff schema (`local/<actor>/<agent>/handoff.md`) — strict, always overwritten
 
 ```markdown
@@ -174,7 +184,7 @@ Why JSONL, not a JSON array:
 2. **Cheap line-by-line query.** Agents grep or filter line-by-line without loading the full file — consistent with the demand-load contract in `§P-Access`.
 3. **Scales past the point a JSON array becomes an anti-pattern.** A 200-entry JSON array is unreadable without tooling; 200 JSONL lines are trivially filterable.
 
-Never edit past entries. If the file is corrupted (a line is not valid JSON), the recovery agent fixes the structure before appending new entries.
+Never edit past entries. To correct an erroneous entry, append a new corrective entry whose rationale references the entry it supersedes (see *Integrity invariants* above). If the file is corrupted (a line is not valid JSON), the recovery agent fixes the structure before appending new entries.
 
 ### Commit convention
 

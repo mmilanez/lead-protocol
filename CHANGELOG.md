@@ -11,6 +11,38 @@ re-stated here.
 
 ---
 
+## [2.1.0] - 2026-07-07
+
+Append-only integrity and git merge support (#5). Kernel bumped to `2.1.0`,
+`git-substrate` module bumped to `1.3.0`, CLI published as `2.1.0`.
+Numbered assuming this lands before #21 (PR #22) and #25 (PR #26); if either
+lands first, this entry can be renumbered.
+
+### Added
+
+- **Kernel `§P3` Integrity invariants** (`PROTOCOL_RULES.md` `2.1.0`):
+  corrections to append-only files are new entries (never rewrites of
+  history), every append ends with a final newline, and structural
+  corruption blocks new appends until repaired and logged.
+- **`§M-git-7` Merge safety for append-only logs** (`git-substrate` `1.3.0`):
+  the template now ships `.agents/.gitattributes` with `merge=union` for
+  `JOURNAL.md`, `LESSONS.md` and `decisions.jsonl`, so merges of branches
+  that both appended keep both sides instead of writing conflict markers.
+  `sessions/active_sessions.md` is deliberately excluded (rows are removed
+  on session close; a union merge would resurrect them). The section also
+  mandates running the validator after any merge touching `.agents/` and
+  documents when human review is still required.
+- **Structural integrity checks in both validators**
+  (`validate_state.py` and the CLI's `lead-protocol validate`):
+  unresolved merge conflict markers (all state files), missing final
+  newline (append-only files), duplicated top-level header (markdown
+  logs). Default targets now include `JOURNAL.md`, `LESSONS.md` and
+  `sessions/active_sessions.md`. New pytest coverage and new end-to-end
+  corruption scenarios in `cli/scripts/test-pack.mjs`.
+- **Wider hook and CI coverage**: the pre-commit hook regex and the
+  state-validation workflow now also watch `JOURNAL.md`, `LESSONS.md`
+  and `sessions/active_sessions.md`.
+
 ## [2.0.3] — 2026-06-01
 
 Security patch and public-repo polish. No kernel or schema changes — the
