@@ -192,6 +192,17 @@ Full detail: `.agents/PROTOCOL_RULES.md §P3 — Three-layer state model`.
 
 </details>
 
+### State file integrity
+
+The shared logs (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`) are append-only at the tail, and the kernel defines three integrity invariants for them (`PROTOCOL_RULES.md §P3 Integrity invariants`): corrections are new entries (never rewrites of history), every append ends with a final newline, and structural corruption blocks new appends until repaired.
+
+Enforcement comes in two layers:
+
+- **Validation.** `python .agents/scripts/validate_state.py` (or `npx @leadsolutions/lead-protocol validate`) checks every state file for unresolved merge conflict markers, missing final newline on the append-only files, and duplicated top-of-file headers, on top of the existing JSON-schema validation. The bundled pre-commit hook and the CI workflow run the same checks.
+- **Merge protection (git projects).** The template ships `.agents/.gitattributes` with `merge=union` for the three append-only logs, so a merge of two branches that both appended keeps both sides instead of writing conflict markers. `sessions/active_sessions.md` is deliberately excluded (its rows are removed on session close, and a union merge would resurrect them). Details and limitations: `.agents/modules/git-substrate.md §M-git-7`.
+
+Limitations: these checks catch structural corruption, not semantic mistakes. A merge that combines two half-written entries into valid-looking text, or an entry whose content is simply wrong, still requires human review. After any merge that touches `.agents/`, run the validator before continuing work.
+
 ---
 
 ## How agents boot in your project

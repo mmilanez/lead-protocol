@@ -4,8 +4,10 @@ import { Command } from "commander";
 import { findAgentsDir, discoverPairs } from "../lib/project.js";
 import {
   findSchemasDir,
+  validateActiveSessions,
   validateDecisionsJsonl,
   validateHandoff,
+  validateMarkdownLog,
   type ValidationResult,
 } from "../lib/validator.js";
 import * as ui from "../lib/ui.js";
@@ -68,11 +70,17 @@ export function registerValidateCommand(program: Command): void {
             results.push(validateDecisionsJsonl(absPath, schemasDir));
           } else if (name === "handoff.md") {
             results.push(validateHandoff(absPath, schemasDir));
+          } else if (name === "JOURNAL.md" || name === "LESSONS.md") {
+            results.push(validateMarkdownLog(absPath));
+          } else if (name === "active_sessions.md") {
+            results.push(validateActiveSessions(absPath));
           } else {
             results.push({
               file: absPath,
               type: "decisions",
-              errors: [`unrecognized file (expected 'handoff.md' or 'decisions.jsonl')`],
+              errors: [
+                "unrecognized file (expected handoff.md, decisions.jsonl, JOURNAL.md, LESSONS.md, or active_sessions.md)",
+              ],
             });
           }
         }
@@ -81,6 +89,18 @@ export function registerValidateCommand(program: Command): void {
         const decisionsPath = path.join(agentsDir, "decisions.jsonl");
         if (existsSync(decisionsPath)) {
           results.push(validateDecisionsJsonl(decisionsPath, schemasDir));
+        }
+
+        for (const logName of ["JOURNAL.md", "LESSONS.md"]) {
+          const logPath = path.join(agentsDir, logName);
+          if (existsSync(logPath)) {
+            results.push(validateMarkdownLog(logPath));
+          }
+        }
+
+        const sessionsPath = path.join(agentsDir, "sessions", "active_sessions.md");
+        if (existsSync(sessionsPath)) {
+          results.push(validateActiveSessions(sessionsPath));
         }
 
         const pairs = discoverPairs(agentsDir);

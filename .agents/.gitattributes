@@ -1,0 +1,22 @@
+# Lead Protocol - merge attributes for the append-only shared logs.
+#
+# JOURNAL.md, LESSONS.md and decisions.jsonl are append-at-tail by protocol
+# rule (PROTOCOL_RULES.md §P3): every writer only adds lines at the end of
+# the file. When two branches both appended, the textually "conflicting"
+# region is really two independent tails, and the correct resolution is to
+# keep both. `merge=union` tells git to do exactly that instead of writing
+# conflict markers into the file. The relative order of two entries appended
+# on different branches is arbitrary, which the protocol already tolerates
+# (see the concurrency notes in §P3).
+#
+# Deliberately NOT listed here:
+#   - sessions/active_sessions.md: rows are REMOVED on session close, and a
+#     union merge would silently resurrect removed rows (closed sessions
+#     would reappear as live). Conflicts there must be resolved by hand.
+#   - local/**: per-pair state is gitignored and never merged.
+#
+# See modules/git-substrate.md §M-git-7 for the full merge contract.
+
+JOURNAL.md merge=union
+LESSONS.md merge=union
+decisions.jsonl merge=union

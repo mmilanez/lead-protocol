@@ -27,7 +27,10 @@ jobs:
         run: |
           python .agents/scripts/validate_state.py \
             --schemas-dir .agents/schemas \
-            .agents/decisions.jsonl
+            .agents/decisions.jsonl \
+            .agents/JOURNAL.md \
+            .agents/LESSONS.md \
+            .agents/sessions/active_sessions.md
 
   validator-unit-tests:
     name: Validator unit tests (pytest)

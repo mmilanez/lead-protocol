@@ -11,9 +11,12 @@
 #   pip install pre-commit
 #   pre-commit install
 #
-# After install, every commit that touches a pair's handoff.md or the
-# project's decisions.jsonl will first run through validate_state.py
-# and fail the commit if the state does not conform to the schemas.
+# After install, every commit that touches a pair's handoff.md, the
+# project's decisions.jsonl, the append-only logs (JOURNAL.md, LESSONS.md)
+# or sessions/active_sessions.md will first run through validate_state.py
+# and fail the commit if the state does not conform to the schemas or
+# fails the structural integrity checks (unresolved conflict markers,
+# missing final newline, duplicated top-level header).
 #
 # Pristine templates (handoffs with literal 'YYYY-MM-DD' placeholders)
 # are skipped — they are not yet in use.
@@ -32,4 +35,4 @@ repos:
         language: python
         additional_dependencies: ["jsonschema>=4.0"]
         pass_filenames: false
-        files: "^\\.agents/(decisions\\.jsonl|local/[^/]+/[^/]+/handoff\\.md)$"
+        files: "^\\.agents/(decisions\\.jsonl|JOURNAL\\.md|LESSONS\\.md|sessions/active_sessions\\.md|local/[^/]+/[^/]+/handoff\\.md)$"

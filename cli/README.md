@@ -56,15 +56,16 @@ lead-protocol handoff --json               # JSON output
 
 ### `validate`
 
-Validate protocol state files against their JSON schemas.
+Validate protocol state files: JSON-schema validation for `decisions.jsonl` and `handoff.md`, plus structural integrity checks on every state file (unresolved merge conflict markers everywhere; missing final newline on the append-only files; duplicated top-level header on the markdown logs).
 
 ```bash
 lead-protocol validate                         # Auto-discover all
 lead-protocol validate .agents/decisions.jsonl  # Specific file (decisions.jsonl)
 lead-protocol validate path/to/handoff.md        # Specific file (handoff.md)
+lead-protocol validate .agents/JOURNAL.md        # Specific file (append-only log)
 ```
 
-Recognized files are matched by name: `decisions.jsonl` and `handoff.md`. Auto-discover checks `.agents/decisions.jsonl` plus every pair's `handoff.md`.
+Recognized files are matched by name: `decisions.jsonl`, `handoff.md`, `JOURNAL.md`, `LESSONS.md`, and `active_sessions.md`. Auto-discover checks `.agents/decisions.jsonl`, `.agents/JOURNAL.md`, `.agents/LESSONS.md`, `.agents/sessions/active_sessions.md`, plus every pair's `handoff.md`.
 
 Exit codes: `0` = passed, `1` = validation errors, `2` = config errors.
 

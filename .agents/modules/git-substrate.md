@@ -1,6 +1,6 @@
 # modules/git-substrate.md — Git / pull-request substrate rules
 
-> Version: 1.2.0 | Updated: 2026-06-01 | Protocol: Lead Protocol v2.0.1+
+> Version: 1.3.0 | Updated: 2026-07-07 | Protocol: Lead Protocol v2.1.0+
 > Scope: Opt-in module. Activate via `PROJECT_RULES.md §J8 Active modules: git-substrate`.
 > Applies to: repositories hosted on a git platform with pull-request support (GitHub, GitLab, Bitbucket, etc.).
 
@@ -65,6 +65,22 @@ All session-close state must be committed on the **feature branch** before the p
 **Reviewer signal:** if a PR modifies only project-layer state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`) and the description explains it as a post-merge closeout, flag the PR. The correct fix is to reopen the feature branch with the state files included and re-merge.
 
 **Interaction with §M-git-1:** project-layer state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`) normally allow direct commit without branching. §M-git-6 does not override that — it restricts **when** that direct commit may happen relative to PR lifecycle. When a PR is open for branched work, write your state to the feature branch before merge, not directly to the default branch after.
+
+## §M-git-7 - Merge safety for append-only logs *(v1.3.0+)*
+
+`JOURNAL.md`, `LESSONS.md`, and `decisions.jsonl` are append-at-tail (`PROTOCOL_RULES §P3`). When two branches both appended entries, git sees two edits at the same location (the tail) and declares a conflict, even though both sides are valid and the correct resolution is simply to keep both. A badly resolved conflict here is the main real-world source of the structural corruption §P3 forbids: leftover `<<<<<<<` markers inside `decisions.jsonl` break every subsequent boot that tails the file.
+
+**Union merge attribute.** The template ships `.agents/.gitattributes` declaring `merge=union` for the three append-only logs. With it, git resolves the "conflicting" tails by keeping both sides' lines and never writes conflict markers into these files. The relative order of two entries appended on different branches is arbitrary, which the protocol already tolerates for these files (§P3 concurrency notes: worst case is reordered lines, and the file stays structurally valid).
+
+**Deliberately excluded from union merge:**
+
+- `sessions/active_sessions.md`: rows are removed on session close, so this file is not append-only. A union merge would silently resurrect removed rows, making closed sessions reappear as live and poisoning the takeover rule. Conflicts here are rare (the file is small and short-lived) and must be resolved by hand.
+- `local/**`: per-pair state is gitignored (§M-git-5) and never merged.
+- Rules files (`PROTOCOL_RULES.md`, `PROJECT_RULES.md`, modules): edited in place by design; a union merge would concatenate divergent rule text. Normal conflict resolution applies.
+
+**Post-merge validation.** After any merge (or rebase) that touched files under `.agents/`, run the validator before continuing work: `python .agents/scripts/validate_state.py` or `lead-protocol validate`. It detects leftover conflict markers, a missing final newline, and duplicated top-of-file headers. Treat a failure as blocking (fix the state before any new append, per §P3 *Integrity invariants*).
+
+**Limitations (when human review is still required):** `merge=union` is line-based and trusts that both sides only appended. If a branch violated §P3 and rewrote earlier lines, union merge can silently combine the rewrite with the original instead of surfacing a conflict. The validator catches structural symptoms, not semantic ones, so a merge that mixes two half-written entries into valid-looking text still needs a human eye. When in doubt, `git log -p` on the state file shows what each side actually changed.
 
 ## Optional tooling that ships with the template
 

@@ -9,12 +9,15 @@ Running the test suite (from the repo root):
     pip install pytest jsonschema
     pytest .agents/scripts/ -v
 
-Without arguments, validates both canonical state locations:
+Without arguments, validates every canonical state location that exists:
     .agents/decisions.jsonl                                 (one object per line)
+    .agents/JOURNAL.md                                      (append-only log)
+    .agents/LESSONS.md                                      (append-only log)
+    .agents/sessions/active_sessions.md                     (live-session registry)
     .agents/local/<actor>/<agent>/handoff.md                (one per pair, walked)
 
 With explicit file paths, validates each one. The file type is inferred
-from the filename (handoff.md vs decisions.jsonl).
+from the filename.
 
 Exit codes:
     0 — all validations passed
@@ -29,6 +32,15 @@ recognized and skipped with a warning rather than treated as an error.
 The decisions.jsonl validator processes one line at a time, validating
 each against decisions.entry.schema.json. Empty lines are skipped; a
 malformed line fails validation without aborting the rest of the file.
+
+All state files additionally go through structural integrity checks
+(§P3 append-at-tail invariants):
+    - unresolved merge conflict markers (all state files)
+    - missing final newline (append-only files: decisions.jsonl,
+      JOURNAL.md, LESSONS.md), which would make the next append glue
+      onto the previous line
+    - duplicated top-level `# ` header (JOURNAL.md, LESSONS.md), the
+      classic symptom of a badly resolved markdown merge
 """
 
 from __future__ import annotations
@@ -52,6 +64,74 @@ except ImportError:
 
 
 PRISTINE_MARKERS = ("YYYY-MM-DD", "[Your Agent Signature]")
+
+# Git writes conflict markers as exactly seven marker characters at the
+# start of a line: `<<<<<<< <label>`, `=======`, `>>>>>>> <label>`, and
+# (diff3 style) `||||||| <label>`. Requiring the full seven-character run
+# anchored at column 0 keeps false positives out of prose and code blocks.
+CONFLICT_MARKER_RE = re.compile(r"^(<{7}(?: .*)?|={7}|>{7}(?: .*)?|\|{7}(?: .*)?)$")
+
+
+def find_conflict_markers(text: str) -> list[int]:
+    """Return the 1-based line numbers of unresolved merge conflict markers."""
+    return [
+        lineno
+        for lineno, line in enumerate(text.splitlines(), start=1)
+        if CONFLICT_MARKER_RE.match(line)
+    ]
+
+
+def has_final_newline(text: str) -> bool:
+    """An empty file is fine; a non-empty file must end with a newline,
+    otherwise the next append glues onto the last line (and corrupts
+    JSONL structurally)."""
+    return text == "" or text.endswith("\n")
+
+
+def find_duplicate_h1(text: str) -> list[int]:
+    """Return the 1-based line numbers of top-level `# ` headers beyond the
+    first one, ignoring fenced code blocks. More than one H1 in JOURNAL.md
+    or LESSONS.md is the classic symptom of a badly resolved merge that
+    duplicated the file header."""
+    h1_lines: list[int] = []
+    in_fence = False
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        stripped = line.lstrip()
+        if stripped.startswith("```") or stripped.startswith("~~~"):
+            in_fence = not in_fence
+            continue
+        if not in_fence and line.startswith("# "):
+            h1_lines.append(lineno)
+    return h1_lines[1:]
+
+
+def integrity_errors(
+    path: Path,
+    text: str,
+    *,
+    check_newline: bool = False,
+    check_h1: bool = False,
+) -> list[str]:
+    """Structural integrity checks shared by every state file type
+    (§P3 append-at-tail invariants)."""
+    errors: list[str] = []
+    for lineno in find_conflict_markers(text):
+        errors.append(
+            f"{path}:{lineno}: unresolved merge conflict marker "
+            "(resolve the merge before appending new entries)"
+        )
+    if check_newline and not has_final_newline(text):
+        errors.append(
+            f"{path}: missing final newline "
+            "(the next append would glue onto the last line)"
+        )
+    if check_h1:
+        for lineno in find_duplicate_h1(text):
+            errors.append(
+                f"{path}:{lineno}: duplicated top-level header "
+                "(symptom of a badly resolved merge; keep a single `# ` header)"
+            )
+    return errors
 
 
 def find_schemas_dir(explicit: Path | None) -> Path:
@@ -172,6 +252,11 @@ def validate_decisions_jsonl(
     Each non-empty line must be a JSON object matching
     decisions.entry.schema.json. Empty lines are skipped. An empty file
     is valid (pristine state).
+
+    Structural integrity runs first: a file holding unresolved conflict
+    markers is reported as corrupted and skips the schema pass (marker
+    lines are not JSON, and per-line schema noise would bury the real
+    problem).
     """
     errors: list[str] = []
     validator = Draft202012Validator(schema)
@@ -179,6 +264,11 @@ def validate_decisions_jsonl(
         text = path.read_text(encoding="utf-8")
     except OSError as e:
         return [f"{path}: could not read file — {e}"]
+
+    structural = integrity_errors(path, text, check_newline=True)
+    if any("conflict marker" in err for err in structural):
+        return structural
+    errors.extend(structural)
 
     for lineno, raw in enumerate(text.splitlines(), start=1):
         line = raw.strip()
@@ -198,8 +288,37 @@ def validate_decisions_jsonl(
     return errors
 
 
+def validate_markdown_log(path: Path) -> list[str]:
+    """Integrity checks for the append-only markdown logs
+    (JOURNAL.md, LESSONS.md). No schema applies; entries are free-form."""
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as e:
+        return [f"{path}: could not read file: {e}"]
+    return integrity_errors(path, text, check_newline=True, check_h1=True)
+
+
+def validate_active_sessions(path: Path) -> list[str]:
+    """Integrity checks for sessions/active_sessions.md.
+
+    Only conflict markers are checked: rows are legitimately removed on
+    session close, so this file is not append-only and neither the final
+    newline invariant nor the single-header invariant is enforced here.
+    """
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as e:
+        return [f"{path}: could not read file: {e}"]
+    return integrity_errors(path, text)
+
+
 def validate_handoff(schema: dict[str, Any], path: Path) -> list[str]:
     text = path.read_text(encoding="utf-8")
+    marker_errors = integrity_errors(path, text)
+    if marker_errors:
+        # A handoff holding conflict markers is corrupted regardless of
+        # whether it looks pristine; parsing it would only add noise.
+        return marker_errors
     if is_pristine_handoff(text):
         print(f"{path}: pristine template (skipped)", file=sys.stderr)
         return []
@@ -234,6 +353,9 @@ def default_targets() -> list[Path]:
 
     v2.0.0 layout:
       - .agents/decisions.jsonl               (always present; may be empty)
+      - .agents/JOURNAL.md                    (append-only log)
+      - .agents/LESSONS.md                    (append-only log)
+      - .agents/sessions/active_sessions.md   (live-session registry)
       - .agents/local/<actor>/<agent>/handoff.md   (zero or more; walked)
     """
     cwd = Path.cwd()
@@ -241,9 +363,14 @@ def default_targets() -> list[Path]:
         agents_dir = ancestor / ".agents"
         if agents_dir.is_dir():
             targets: list[Path] = []
-            decisions = agents_dir / "decisions.jsonl"
-            if decisions.is_file():
-                targets.append(decisions)
+            for candidate in (
+                agents_dir / "decisions.jsonl",
+                agents_dir / "JOURNAL.md",
+                agents_dir / "LESSONS.md",
+                agents_dir / "sessions" / "active_sessions.md",
+            ):
+                if candidate.is_file():
+                    targets.append(candidate)
             targets.extend(discover_pair_handoffs(agents_dir))
             if not targets:
                 raise SystemExit(
@@ -266,7 +393,8 @@ def main() -> int:
         "files",
         nargs="*",
         type=Path,
-        help="Files to validate. Default: .agents/decisions.jsonl and every "
+        help="Files to validate. Default: .agents/decisions.jsonl, "
+        "JOURNAL.md, LESSONS.md, sessions/active_sessions.md, and every "
         "local/<actor>/<agent>/handoff.md.",
     )
     args = parser.parse_args()
@@ -289,10 +417,15 @@ def main() -> int:
             )
         elif name == "handoff.md":
             all_errors.extend(validate_handoff(handoff_schema, target))
+        elif name in ("JOURNAL.md", "LESSONS.md"):
+            all_errors.extend(validate_markdown_log(target))
+        elif name == "active_sessions.md":
+            all_errors.extend(validate_active_sessions(target))
         else:
             all_errors.append(
                 f"{target}: unrecognized file "
-                "(expected 'handoff.md' or 'decisions.jsonl')"
+                "(expected handoff.md, decisions.jsonl, JOURNAL.md, "
+                "LESSONS.md, or active_sessions.md)"
             )
 
     if all_errors:
