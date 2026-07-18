@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
@@ -91,5 +91,34 @@ test("significant close requires explicit JOURNAL confirmation", { concurrency: 
   await inFixture({}, () => {
     openSession({ actor: "marco", agent: "codex", topic: "journal", now: new Date("2026-07-18T08:00:00.000Z") });
     assert.throws(() => closeSession({ actor: "marco", agent: "codex", journal: "significant", status: "STABLE", lastAction: "Done", pendingStep: "None", confirmChecklist: true }), /journal-entry-confirmed/);
+  });
+});
+
+test("malformed existing handoff blocks open without registering a session", { concurrency: false }, async () => {
+  await inFixture({}, (root) => {
+    const pair = path.join(root, ".agents", "local", "marco", "codex");
+    mkdirSync(pair, { recursive: true });
+    writeFileSync(path.join(pair, "handoff.md"), "# malformed\n");
+    const registryPath = path.join(root, ".agents", "sessions", "active_sessions.md");
+    const before = readFileSync(registryPath, "utf8");
+    assert.throws(() => openSession({ actor: "marco", agent: "codex", topic: "unsafe" }), /Version\/Updated/);
+    assert.equal(readFileSync(registryPath, "utf8"), before);
+  });
+});
+
+test("interrupted close rolls the registry back and emits no close receipt", { concurrency: false }, async () => {
+  await inFixture({}, (root) => {
+    const opened = openSession({ actor: "marco", agent: "codex", topic: "rollback", now: new Date("2026-07-18T08:00:00.000Z") });
+    const registryPath = path.join(root, ".agents", "sessions", "active_sessions.md");
+    const before = readFileSync(registryPath, "utf8");
+    assert.throws(() => closeSession({
+      actor: "marco", agent: "codex", journal: "not-significant", status: "STABLE",
+      lastAction: "Should not commit", pendingStep: "Retry", confirmChecklist: true,
+      faultInjector(point) { if (point === "before-close-handoff-write") throw new Error("injected interruption"); },
+    }), /injected interruption/);
+    assert.equal(readFileSync(registryPath, "utf8"), before);
+    assert.equal(parseActiveSessions(before).some((row) => row.sessionId === opened.sessionId), true);
+    const closeReceipt = path.join(root, ".agents", "local", "marco", "codex", "receipts", `${opened.sessionId}-close.json`);
+    assert.equal(existsSync(closeReceipt), false);
   });
 });

@@ -4,7 +4,7 @@
 
 When one AI session ends, it writes down what it did, what's left, and why it made the calls it made. The next session — even a different tool, even days later — reads that and picks up where the last one stopped. Nothing forgotten, nothing re-explained.
 
-> Current version: **2.1.0**
+> Current version: **2.1.1**
 
 ---
 
@@ -152,18 +152,23 @@ That's it. Read the sections below or browse [`.agents/CORE_RULES.md`](.agents/C
 The optional CLI turns the boot and close contract into three commands:
 
 ```bash
-npx @leadsolutions/lead-protocol@2.1.0 session open \
+npx @leadsolutions/lead-protocol@2.1.1 session open \
   --actor judge --agent codex --topic "Try the lifecycle" --json
 
 echo "A self-contained checkpoint body" | \
-  npx @leadsolutions/lead-protocol@2.1.0 checkpoint \
+  npx @leadsolutions/lead-protocol@2.1.1 checkpoint \
     --actor judge --agent codex --title first-checkpoint --json
 
-npx @leadsolutions/lead-protocol@2.1.0 session close \
+npx @leadsolutions/lead-protocol@2.1.1 session close \
   --actor judge --agent codex \
   --journal not-significant --status stable \
   --last-action "Verified the lifecycle." --pending-step None \
   --confirm-checklist --json
+
+# Start a clean second session. The JSON receipt includes the terminal handoff
+# from the first session under `previousHandoff`, proving immediate resume.
+npx @leadsolutions/lead-protocol@2.1.1 session open \
+  --actor judge --agent codex --topic "Resume from prior handoff" --json
 ```
 
 `session open` records the active session, updates the pair handoff, and emits a
@@ -275,6 +280,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
+| **2.1.1** | Completes the lifecycle acceptance contract: human-readable resume context, deterministic malformed-state and interrupted-close rollback tests, hosted macOS coverage, and a package smoke test that proves continuation across two clean sessions. |
 | **2.1.0** | **Build Week executable lifecycle.** Adds `session open`, `checkpoint`, and `session close`, deterministic SHA-256 boot receipts, optimistic peer-safe registry mutation, guarded terminal handoffs, unit tests, and package-install smoke coverage. |
 | **2.0.4** | **Branch ordering rule (kernel 2.0.1).** Adds an explicit rule (PROTOCOL_RULES §P3) requiring session-close state to be committed on the feature branch before the PR is opened, not written to the default branch after merge. Adds §M-git-6 to `git-substrate.md` with git-specific enforcement and a reviewer signal for post-merge closeout PRs. Adds one checklist item to the handoff schema. Fixes #2. |
 | **2.0.3** | Security patch: `migrate_to_v2.py` now validates `--actor` / `--agent` values against path traversal (rejects `..`, `/`, `\`, absolute paths, drive letters). README Quick Start updated to current release with PowerShell copy block added. `SECURITY.md` and `CONTRIBUTING.md` scope corrected (CLI/MCP are roadmap, not shipped). CI workflow permissions hardened. No kernel or schema changes. |

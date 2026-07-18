@@ -214,7 +214,8 @@ export function createCheckpoint(opts: { actor?: string; agent?: string; signatu
   return { checkpoint: target, sessionId: receipt.sessionId, timestamp: now.toISOString() };
 }
 
-export function closeSession(opts: { actor?: string; agent?: string; signature?: string; toolSignature?: string; journal: "significant" | "not-significant"; journalEntryConfirmed?: boolean; status: "STABLE" | "BLOCKED"; lastAction: string; pendingStep: string; blockers?: string; openThreads?: string; confirmChecklist: boolean; now?: Date }) {
+export type LifecycleFaultPoint = "before-close-handoff-write";
+export function closeSession(opts: { actor?: string; agent?: string; signature?: string; toolSignature?: string; journal: "significant" | "not-significant"; journalEntryConfirmed?: boolean; status: "STABLE" | "BLOCKED"; lastAction: string; pendingStep: string; blockers?: string; openThreads?: string; confirmChecklist: boolean; now?: Date; faultInjector?: (point: LifecycleFaultPoint) => void }) {
   const agentsDir = findAgentsDir(); if (!agentsDir) throw new LifecycleError("could not locate .agents directory", 2);
   const now = opts.now ?? new Date(); const pair = resolvePair(opts, agentsDir, now); const paths = pairPaths(agentsDir, pair);
   if (!opts.confirmChecklist) throw new LifecycleError("close requires --confirm-checklist after verifying all conditional close obligations");
@@ -236,7 +237,7 @@ export function closeSession(opts: { actor?: string; agent?: string; signature?:
   handoffAfter = setField(handoffAfter, "Open Threads", safeCell(opts.openThreads ?? "None", "open threads"));
   handoffAfter = handoffAfter.replace(/^> Version: (\S+) \| Updated: \S+$/m, `> Version: $1 | Updated: ${now.toISOString().slice(0, 10)}`);
   handoffAfter = handoffAfter.replace(/^- \[[ xX]\]/gm, "- [x]");
-  try { atomicCompareReplace(paths.handoff, handoffBefore, handoffAfter, receipt.sessionId); }
+  try { opts.faultInjector?.("before-close-handoff-write"); atomicCompareReplace(paths.handoff, handoffBefore, handoffAfter, receipt.sessionId); }
   catch (error) {
     if (readFileSync(registryPath, "utf8") === after) atomicCompareReplace(registryPath, after, before, `${receipt.sessionId}.rollback`);
     throw error;

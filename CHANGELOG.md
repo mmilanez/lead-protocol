@@ -11,6 +11,27 @@ re-stated here.
 
 ---
 
+## [2.1.1] — 2026-07-18
+
+Acceptance-completion patch for public issue #28. The v2.1.0 source release is
+preserved; this patch closes the gaps found by a post-merge audit.
+
+### Added
+
+- Human-readable `session open` output now prints the previous status, pending
+  step, blockers, and open threads.
+- Hosted Node 18 lifecycle CI on macOS in addition to Windows and Ubuntu.
+- Deterministic tests for malformed existing handoffs and interrupted-close
+  registry rollback. Lifecycle unit coverage is now 7 tests.
+- The production tarball smoke test now opens a clean second session, verifies
+  the previous terminal handoff, and closes that resumed session.
+- README and CLI documentation include a reproducible two-session resume flow.
+
+### Fixed
+
+- Interrupted close restores the owned active-session row when terminal
+  handoff replacement fails, and does not emit a misleading close receipt.
+
 ## [2.1.0] — 2026-07-18
 
 OpenAI Build Week extension. Lead Protocol itself predates the July 13, 2026
