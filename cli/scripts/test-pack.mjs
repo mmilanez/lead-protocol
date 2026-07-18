@@ -92,8 +92,41 @@ try {
   }
   console.log("[test-pack] OK: init created .agents/ and tagged CLAUDE.md / AGENTS.md");
 
+  // Materialize the minimum project configuration required by the canonical
+  // boot gate before exercising the session lifecycle.
+  const projectRules = path.join(target, ".agents", "PROJECT_RULES.md");
+  writeFileSync(
+    projectRules,
+    readFileSync(projectRules, "utf-8")
+      .replace("# PROJECT_RULES.md — [Project Name]", "# PROJECT_RULES.md — Package smoke")
+      .replace("- **Name:** [Project Name]", "- **Name:** Package smoke")
+      .replace(/- \*\*Active modules:\*\*.*$/m, "- **Active modules:** none"),
+  );
+
   run("validate", `node ${q(bin)} validate`, { cwd: target });
   run("status", `node ${q(bin)} status`, { cwd: target });
+
+  // 5. Exercise the exact installed lifecycle binary without rebuilding.
+  run(
+    "session open",
+    `node ${q(bin)} session open --actor judge --agent codex --signature "[Codex / GPT-5]" --topic "Package lifecycle smoke" --json`,
+    { cwd: target },
+  );
+  const checkpointBody = path.join(target, "checkpoint-body.md");
+  writeFileSync(checkpointBody, "Package smoke checkpoint body.\n");
+  run(
+    "checkpoint",
+    `node ${q(bin)} checkpoint --actor judge --agent codex --title package-smoke --file ${q(checkpointBody)} --json`,
+    { cwd: target },
+  );
+  run(
+    "session close",
+    `node ${q(bin)} session close --actor judge --agent codex --journal not-significant --status stable --last-action "Package lifecycle verified." --pending-step None --confirm-checklist --json`,
+    { cwd: target },
+  );
+  const receipts = path.join(target, ".agents", "local", "judge", "codex", "receipts");
+  if (!existsSync(receipts)) throw new Error("lifecycle receipts directory was not created");
+  console.log("[test-pack] OK: installed lifecycle opened, checkpointed, and closed");
 
   console.log("\n[test-pack] PASS: the published artifact installs and runs like production.");
 } catch (err) {

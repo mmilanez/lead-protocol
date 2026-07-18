@@ -27,6 +27,57 @@ lead-protocol <command>
 
 ## Commands
 
+### `session open`
+
+Open a verifiable session, register it without disturbing peer rows, transition
+the pair-local handoff to `IN_PROGRESS`, and write a SHA-256 boot receipt.
+
+```bash
+lead-protocol session open \
+  --actor marco \
+  --agent codex \
+  --signature "[Codex / GPT-5]" \
+  --topic "Implement issue #28" \
+  --json
+```
+
+Actor resolution is `--actor`, `LEAD_PROTOCOL_ACTOR_ID`,
+`.agents/local/WHOAMI.txt`, then `user@host`. Agent resolution is `--agent`,
+`LEAD_PROTOCOL_AGENT_ID`, `--tool-signature` through `AGENTS_MAP.md`, then a
+timestamped unknown-agent fallback. Receipts are stored under the gitignored
+`.agents/local/<actor>/<agent>/receipts/` directory.
+
+### `checkpoint`
+
+Create a UTC-named shared checkpoint for the active pair and update only that
+session's checkpoint pointer. The body comes from `--file` or stdin.
+
+```bash
+lead-protocol checkpoint --actor marco --agent codex \
+  --title architecture-locked --file checkpoint-body.md --json
+```
+
+### `session close`
+
+Validate state, remove only the current session row, write the terminal
+handoff, and emit a close receipt. Closing is deliberately explicit:
+
+```bash
+lead-protocol session close \
+  --actor marco --agent codex \
+  --journal not-significant \
+  --status stable \
+  --last-action "Lifecycle verified." \
+  --pending-step None \
+  --confirm-checklist \
+  --json
+```
+
+Use `--journal significant --journal-entry-confirmed` when the session produced
+a structurally significant delivery and the JOURNAL entry already exists.
+Close never reports success after validation, ownership, checklist, or
+optimistic concurrency failure.
+
 ### `init`
 
 Initialize Lead Protocol in the current directory.
@@ -96,6 +147,7 @@ The CLI manages `CLAUDE.md` and `AGENTS.md` using XML-style tags:
 
 - Node.js >= 18.0.0
 - No dependency on git, Python, or any server
+- Supported on Windows, macOS, and Linux
 
 ## License
 
