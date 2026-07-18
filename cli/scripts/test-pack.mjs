@@ -19,6 +19,7 @@ import {
   rmSync,
   writeFileSync,
   readFileSync,
+  readdirSync,
   existsSync,
 } from "node:fs";
 import os from "node:os";
@@ -110,6 +111,22 @@ try {
 
   run("validate", `node ${q(bin)} validate`, { cwd: target });
   run("status", `node ${q(bin)} status`, { cwd: target });
+  const pristineStatus = JSON.parse(capture("status --json", `node ${q(bin)} status --json`, { cwd: target }));
+  if (pristineStatus.activeSessions !== 0) {
+    throw new Error(`fresh install inherited ${pristineStatus.activeSessions} active session(s)`);
+  }
+  if (pristineStatus.recentDecisions.length !== 0) {
+    throw new Error(`fresh install inherited ${pristineStatus.recentDecisions.length} decision(s)`);
+  }
+  const pristineCheckpoints = readdirSync(path.join(target, ".agents", "checkpoints")).filter((name) => name !== ".gitkeep");
+  if (pristineCheckpoints.length !== 0) {
+    throw new Error(`fresh install inherited ${pristineCheckpoints.length} checkpoint(s)`);
+  }
+  const pristineSessionFiles = readdirSync(path.join(target, ".agents", "sessions"));
+  if (pristineSessionFiles.length !== 1 || pristineSessionFiles[0] !== "active_sessions.md") {
+    throw new Error(`fresh install inherited unexpected session artifacts: ${pristineSessionFiles.join(", ")}`);
+  }
+  console.log("[test-pack] OK: fresh install contains no source-repository sessions, decisions, or checkpoints");
 
   // 5. Exercise the exact installed lifecycle binary without rebuilding.
   run(
@@ -146,7 +163,7 @@ try {
   );
   console.log("[test-pack] OK: installed lifecycle completed a two-session resume flow");
 
-  console.log("\n[test-pack] PASS: the published artifact installs and runs like production.");
+  console.log("\n[test-pack] PASS: the locally packed artifact installs and runs like production.");
 } catch (err) {
   process.exitCode = 1;
   console.error(`\n[test-pack] FAIL: ${err.message}`);
