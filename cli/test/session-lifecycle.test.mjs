@@ -122,3 +122,14 @@ test("interrupted close rolls the registry back and emits no close receipt", { c
     assert.equal(existsSync(closeReceipt), false);
   });
 });
+
+test("a second closed session in the same minute gets a deterministic suffix", { concurrency: false }, async () => {
+  await inFixture({}, () => {
+    const now = new Date("2026-07-18T08:00:00.000Z");
+    const first = openSession({ actor: "marco", agent: "codex", topic: "first", now });
+    closeSession({ actor: "marco", agent: "codex", journal: "not-significant", status: "STABLE", lastAction: "First done", pendingStep: "None", confirmChecklist: true, now });
+    const second = openSession({ actor: "marco", agent: "codex", topic: "second", now });
+    assert.equal(first.sessionId, "2026-07-18-0800-codex");
+    assert.equal(second.sessionId, "2026-07-18-0800-codex-2");
+  });
+});

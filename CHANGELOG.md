@@ -31,6 +31,9 @@ preserved; this patch closes the gaps found by a post-merge audit.
 
 - Interrupted close restores the owned active-session row when terminal
   handoff replacement fails, and does not emit a misleading close receipt.
+- Consecutive sessions from the same pair within one UTC minute retain the
+  canonical ID as a base and receive deterministic `-2`, `-3` suffixes instead
+  of colliding with preserved receipt filenames.
 
 ## [2.1.0] — 2026-07-18
 

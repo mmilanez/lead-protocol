@@ -165,15 +165,18 @@ export function openSession(opts: { actor?: string; agent?: string; signature?: 
   const registryPath = path.join(agentsDir, "sessions", "active_sessions.md");
   const registryBefore = readFileSync(registryPath, "utf8");
   const rows = parseActiveSessions(registryBefore);
+  const usedSessionIds = new Set(rows.map((row) => row.sessionId));
   if (existsSync(paths.receipts)) {
     const activeIds = new Set(rows.map((r) => r.sessionId));
     for (const file of readdirSync(paths.receipts).filter((f) => f.endsWith("-open.json"))) {
       const receipt = JSON.parse(readFileSync(path.join(paths.receipts, file), "utf8")) as OpenReceipt;
+      usedSessionIds.add(receipt.sessionId);
       if (activeIds.has(receipt.sessionId)) throw new LifecycleError(`pair already owns active session ${receipt.sessionId}`);
     }
   }
-  const id = sessionId(now, pair.agent);
-  if (rows.some((r) => r.sessionId === id)) throw new LifecycleError(`session ID already exists: ${id}`);
+  const baseId = sessionId(now, pair.agent);
+  let id = baseId;
+  for (let sequence = 2; usedSessionIds.has(id); sequence++) id = `${baseId}-${sequence}`;
   const handoffBefore = existsSync(paths.handoff) ? readFileSync(paths.handoff, "utf8") : freshHandoff(pair, now);
   const previous = existsSync(paths.handoff) ? parseHandoffMd(handoffBefore) : null;
   let handoffAfter = resetChecklist(handoffBefore);
