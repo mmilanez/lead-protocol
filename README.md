@@ -4,7 +4,7 @@
 
 When one AI session ends, it writes down what it did, what's left, and why it made the calls it made. The next session — even a different tool, even days later — reads that and picks up where the last one stopped. Nothing forgotten, nothing re-explained.
 
-> Current version: **2.0.4**
+> Current version: **2.1.0**
 
 ---
 
@@ -38,7 +38,7 @@ Lead Protocol is a set of structured files committed to your git repository:
 - **`JOURNAL.md`** — curated timeline of structurally significant deliveries
 - **`LESSONS.md`** — mistakes not to repeat, searchable by tag
 
-Any agent that can read text files can use it. No runtime, no database, no API keys — it's just files in your git repo. A CLI and MCP server are on the roadmap, but you never need them to use Lead Protocol today.
+Any agent that can read text files can use it. No database or API keys are required — it's just files in your git repo. The optional Node.js CLI can now execute a verifiable session lifecycle; an MCP server remains on the roadmap.
 
 In practice, the whole protocol is a single folder of markdown and JSON files dropped into your repository:
 
@@ -110,7 +110,7 @@ Lead Protocol fills the operational-state slot in the broader agent stack:
 ```bash
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.0.4 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
+git clone --branch v2.1.0 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
 
 # Copy the scaffold into your project
 cp -R /tmp/lp/.agents   your-project/.agents
@@ -130,7 +130,7 @@ python .agents/scripts/validate_state.py
 ```powershell
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.0.4 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
+git clone --branch v2.1.0 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
 
 # Copy the scaffold into your project
 Copy-Item -Recurse $env:TEMP\lp\.agents   your-project\.agents
@@ -146,6 +146,43 @@ python .agents/scripts/validate_state.py
 ```
 
 That's it. Read the sections below or browse [`.agents/CORE_RULES.md`](.agents/CORE_RULES.md) to understand how agents use the protocol inside your project.
+
+## Executable session lifecycle
+
+The optional CLI turns the boot and close contract into three commands:
+
+```bash
+npx @leadsolutions/lead-protocol@2.1.0 session open \
+  --actor judge --agent codex --topic "Try the lifecycle" --json
+
+echo "A self-contained checkpoint body" | \
+  npx @leadsolutions/lead-protocol@2.1.0 checkpoint \
+    --actor judge --agent codex --title first-checkpoint --json
+
+npx @leadsolutions/lead-protocol@2.1.0 session close \
+  --actor judge --agent codex \
+  --journal not-significant --status stable \
+  --last-action "Verified the lifecycle." --pending-step None \
+  --confirm-checklist --json
+```
+
+`session open` records the active session, updates the pair handoff, and emits a
+receipt containing the canonical file order and SHA-256 hashes. `checkpoint`
+creates a UTC-named shared snapshot without overwriting peer state. `session
+close` validates the close contract and removes only the current row.
+
+Supported platforms: Windows, macOS, and Linux with Node.js 18 or newer. See
+[`cli/README.md`](cli/README.md) for all flags and judge testing instructions.
+
+### Build Week 2026 provenance
+
+Lead Protocol existed before the OpenAI Build Week submission period. The
+post-July-13 extension evaluated for the challenge is the executable lifecycle
+above: deterministic boot receipts, safe active-session mutation, checkpoint
+ownership, guarded close, lifecycle tests, and install-from-tarball smoke
+coverage. The earlier protocol, CLI initialization/status commands, and work in
+public PRs #22, #26, and #27 are pre-existing work and are not claimed as Build
+Week additions. Public issue #28 tracks this extension.
 
 ## Installing a specific version
 
@@ -238,6 +275,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
+| **2.1.0** | **Build Week executable lifecycle.** Adds `session open`, `checkpoint`, and `session close`, deterministic SHA-256 boot receipts, optimistic peer-safe registry mutation, guarded terminal handoffs, unit tests, and package-install smoke coverage. |
 | **2.0.4** | **Branch ordering rule (kernel 2.0.1).** Adds an explicit rule (PROTOCOL_RULES §P3) requiring session-close state to be committed on the feature branch before the PR is opened, not written to the default branch after merge. Adds §M-git-6 to `git-substrate.md` with git-specific enforcement and a reviewer signal for post-merge closeout PRs. Adds one checklist item to the handoff schema. Fixes #2. |
 | **2.0.3** | Security patch: `migrate_to_v2.py` now validates `--actor` / `--agent` values against path traversal (rejects `..`, `/`, `\`, absolute paths, drive letters). README Quick Start updated to current release with PowerShell copy block added. `SECURITY.md` and `CONTRIBUTING.md` scope corrected (CLI/MCP are roadmap, not shipped). CI workflow permissions hardened. No kernel or schema changes. |
 | **2.0.2** | Documentation and release infrastructure fixes. README version references corrected. No kernel or schema changes. |

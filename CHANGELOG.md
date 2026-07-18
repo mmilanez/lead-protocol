@@ -11,6 +11,44 @@ re-stated here.
 
 ---
 
+## [2.1.0] — 2026-07-18
+
+OpenAI Build Week extension. Lead Protocol itself predates the July 13, 2026
+submission-period start; this release isolates the new executable lifecycle so
+the added work can be evaluated independently.
+
+### Added
+
+- `lead-protocol session open` with actor/agent resolution, safe duplicate-pair
+  failure, pair-local `IN_PROGRESS` handoff transition, active-session
+  registration, and a JSON boot receipt containing canonical ordered files and
+  SHA-256 hashes.
+- `lead-protocol checkpoint` with UTC filenames, exclusive creation, active
+  session ownership, stdin/file input, and exact-row checkpoint pointer update.
+- `lead-protocol session close` with explicit JOURNAL significance, terminal
+  handoff fields, checklist confirmation, handoff/decision validation, exact-row
+  removal, and a machine-readable close receipt.
+- Node test coverage for the full lifecycle, duplicate sessions, peer-row
+  preservation, malformed duplicate IDs, CRLF preservation, and JOURNAL guard.
+- Production tarball smoke coverage that installs the package into a clean
+  project and runs `open -> checkpoint -> close` without rebuilding.
+
+### Safety
+
+- Existing registry prose, newline style, and unrelated peer rows are
+  preserved.
+- State replacements use byte comparison before sibling-temp replacement and
+  fail rather than overwrite concurrent changes.
+- Multi-file failures use conditional rollback where safe; partial receipt
+  failures are reported and never presented as success.
+
+### Build Week boundary
+
+- Public issue: #28.
+- PRs #22, #26, and #27 and their commits predate the submission period and are
+  intentionally excluded from this release branch. They require rebase and
+  renumbering after 2.1.0.
+
 ## [2.0.3] — 2026-06-01
 
 Security patch and public-repo polish. No kernel or schema changes — the

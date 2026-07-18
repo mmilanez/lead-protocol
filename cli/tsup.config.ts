@@ -1,7 +1,10 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  entry: {
+    index: "src/index.ts",
+    "lib/session-lifecycle": "src/lib/session-lifecycle.ts",
+  },
   format: ["esm"],
   target: "node18",
   outDir: "dist",
