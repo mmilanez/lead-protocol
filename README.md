@@ -110,7 +110,7 @@ Lead Protocol fills the operational-state slot in the broader agent stack:
 ```bash
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.1.0 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
+git clone --branch v2.1.1 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
 
 # Copy the scaffold into your project
 cp -R /tmp/lp/.agents   your-project/.agents
@@ -130,7 +130,7 @@ python .agents/scripts/validate_state.py
 ```powershell
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.1.0 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
+git clone --branch v2.1.1 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
 
 # Copy the scaffold into your project
 Copy-Item -Recurse $env:TEMP\lp\.agents   your-project\.agents
@@ -313,7 +313,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Priority | Component | Status |
 |---|---|---|
-| **P1** | CLI (`lead-protocol init / handoff / validate`) | Planned |
+| **P1** | CLI (`init`, `handoff`, `status`, `validate`, and session lifecycle) | ✅ Shipped in v2.1.1 |
 | **P1** | JSON Schemas for `handoff.md` and `decisions.jsonl` | ✅ Shipped in v1.8.1 |
 | **P1** | Pre-commit hook for schema enforcement | ✅ Shipped in v1.8.2 |
 | **P2** | MCP Server (protocol operations as MCP tools) | Planned |
