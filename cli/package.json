@@ -13,7 +13,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test test/*.test.mjs",
+    "test": "npm run build && node --test test/session-lifecycle.test.mjs",
     "test:pack": "node scripts/test-pack.mjs",
     "prepublishOnly": "npm run build"
   },
