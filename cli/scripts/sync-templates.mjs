@@ -8,7 +8,7 @@
 //
 // Runs from tsup's onSuccess hook, after tsup has cleaned and rebuilt dist/.
 
-import { cpSync, rmSync, mkdirSync, existsSync, copyFileSync } from "node:fs";
+import { cpSync, rmSync, mkdirSync, existsSync, copyFileSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -43,6 +43,32 @@ cpSync(agentsSrc, path.join(dest, ".agents"), {
   recursive: true,
   filter: (src) => path.relative(agentsSrc, src).split(path.sep)[0] !== "local",
 });
+
+// The repository's registry is live project state, not a distributable default.
+// Preserve the template prose and table shape while removing every active row.
+const activeSessions = path.join(dest, ".agents", "sessions", "active_sessions.md");
+const registry = readFileSync(activeSessions, "utf8");
+const newline = registry.includes("\r\n") ? "\r\n" : "\n";
+const lines = registry.split(/\r?\n/);
+const header = lines.indexOf("| Session ID | Agent | Started | Topic | Last checkpoint |");
+if (header < 0 || lines[header + 1] !== "|---|---|---|---|---|") {
+  fail(`malformed active-session template: ${activeSessions}`);
+}
+let end = header + 2;
+while (end < lines.length && lines[end].startsWith("|")) end++;
+writeFileSync(activeSessions, [...lines.slice(0, header + 2), ...lines.slice(end)].join(newline), "utf8");
+const sessionsDir = path.dirname(activeSessions);
+for (const name of readdirSync(sessionsDir)) {
+  if (name !== "active_sessions.md") rmSync(path.join(sessionsDir, name), { recursive: true, force: true });
+}
+
+// Append-only project history and live coordination snapshots belong to the
+// source repository. Consumers must start with empty state.
+writeFileSync(path.join(dest, ".agents", "decisions.jsonl"), "", "utf8");
+const checkpoints = path.join(dest, ".agents", "checkpoints");
+rmSync(checkpoints, { recursive: true, force: true });
+mkdirSync(checkpoints, { recursive: true });
+writeFileSync(path.join(checkpoints, ".gitkeep"), "", "utf8");
 
 for (const file of guidelineFiles) {
   copyFileSync(path.join(repoRoot, file), path.join(dest, file));

@@ -181,13 +181,37 @@ Supported platforms: Windows, macOS, and Linux with Node.js 18 or newer. See
 
 ### Build Week 2026 provenance
 
-Lead Protocol existed before the OpenAI Build Week submission period. The
-post-July-13 extension evaluated for the challenge is the executable lifecycle
-above: deterministic boot receipts, safe active-session mutation, checkpoint
-ownership, guarded close, lifecycle tests, and install-from-tarball smoke
-coverage. The earlier protocol, CLI initialization/status commands, and work in
-public PRs #22, #26, and #27 are pre-existing work and are not claimed as Build
-Week additions. Public issue #28 tracks this extension.
+Lead Protocol and its core engineering predate OpenAI Build Week. The maintainer
+used Codex as an implementation and adversarial-review partner for the public
+executable lifecycle. Codex accelerated the work by tracing each state
+transition, turning rollback and concurrency risks into focused fault-injection
+tests, and checking the packaged CLI path rather than only the happy path.
+
+The key human engineering decisions remained with the maintainer: keep the
+protocol vendor-neutral and file-based; isolate volatile state by `(actor,
+agent)`; preserve peer-owned rows; require explicit JOURNAL significance; use
+deterministic receipts; reject unconfigured pristine project state; and hold the
+review to a public-only, offline boundary.
+
+For this public-only adversarial review, **GPT-5.6 Sol (Medium)** independently
+examined `session open -> checkpoint -> session close`. Its specific Build Week
+contribution was to confirm and repair transactional rollback and
+receipt-ownership defects, strengthen peer-row preservation, and add regression
+coverage for pristine/malformed state, optimistic concurrency, and interrupted
+operations. This is unreleased main-branch hardening created after the v2.1.1
+tag: it is not part of the immutable npm `2.1.1` artifact, and no new package
+version, tag, or release is created by this review. The model configuration,
+Codex thread ID, findings, and validation
+are recorded in the [public adversarial review](docs/build-week-2026/gpt-5.6-lifecycle-review.md).
+
+**Contribution boundary:** everything that predates the Build Week submission
+period beginning on 2026-07-13 is pre-existing work and is not claimed for the
+challenge. Work added during the submission period is limited to the executable
+lifecycle (`session open`, `checkpoint`, and `session close`), its receipts,
+ownership/concurrency/rollback safeguards, lifecycle tests, package smoke
+coverage, and this provenance disclosure. The underlying protocol design,
+templates, documentation, validation/migration tooling, and earlier CLI
+commands remain pre-existing work.
 
 ## Installing a specific version
 
