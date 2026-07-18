@@ -78,6 +78,20 @@ a structurally significant delivery and the JOURNAL entry already exists.
 Close never reports success after validation, ownership, checklist, or
 optimistic concurrency failure.
 
+### Reproducible two-session resume
+
+After the close example above, open the same pair again:
+
+```bash
+lead-protocol session open --actor marco --agent codex \
+  --topic "Resume from prior handoff" --json
+```
+
+The new receipt contains the first session's terminal state under
+`previousHandoff`, including `status`, `last_action`, `pending_step`, blockers,
+and open threads. This is also exercised against the installed npm tarball by
+`npm run test:pack`.
+
 ### `init`
 
 Initialize Lead Protocol in the current directory.

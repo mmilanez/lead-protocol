@@ -34,6 +34,11 @@ function run(label, cmd, opts = {}) {
   execSync(cmd, { stdio: "inherit", ...opts });
 }
 
+function capture(label, cmd, opts = {}) {
+  console.log(`\n[test-pack] ${label}\n[test-pack] $ ${cmd}`);
+  return execSync(cmd, { encoding: "utf8", ...opts });
+}
+
 const tmp = mkdtempSync(path.join(os.tmpdir(), "lp-testpack-"));
 
 try {
@@ -126,7 +131,20 @@ try {
   );
   const receipts = path.join(target, ".agents", "local", "judge", "codex", "receipts");
   if (!existsSync(receipts)) throw new Error("lifecycle receipts directory was not created");
-  console.log("[test-pack] OK: installed lifecycle opened, checkpointed, and closed");
+  const resumed = JSON.parse(capture(
+    "second session open / resume",
+    `node ${q(bin)} session open --actor judge --agent codex --signature "[Codex / GPT-5]" --topic "Resume from prior handoff" --json`,
+    { cwd: target },
+  ));
+  if (resumed.previousHandoff?.status !== "STABLE" || resumed.previousHandoff?.last_action !== "Package lifecycle verified.") {
+    throw new Error("second session did not receive the terminal handoff from the first session");
+  }
+  run(
+    "second session close",
+    `node ${q(bin)} session close --actor judge --agent codex --journal not-significant --status stable --last-action "Two-session resume verified." --pending-step None --confirm-checklist --json`,
+    { cwd: target },
+  );
+  console.log("[test-pack] OK: installed lifecycle completed a two-session resume flow");
 
   console.log("\n[test-pack] PASS: the published artifact installs and runs like production.");
 } catch (err) {
