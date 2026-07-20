@@ -4,7 +4,7 @@
 
 When one AI session ends, it writes down what it did, what's left, and why it made the calls it made. The next session — even a different tool, even days later — reads that and picks up where the last one stopped. Nothing forgotten, nothing re-explained.
 
-> Current version: **2.1.1**
+> Current version: **2.1.2**
 
 ---
 
@@ -110,7 +110,7 @@ Lead Protocol fills the operational-state slot in the broader agent stack:
 ```bash
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.1.1 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
+git clone --branch v2.1.2 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
 
 # Copy the scaffold into your project
 cp -R /tmp/lp/.agents   your-project/.agents
@@ -130,7 +130,7 @@ python .agents/scripts/validate_state.py
 ```powershell
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.1.1 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
+git clone --branch v2.1.2 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
 
 # Copy the scaffold into your project
 Copy-Item -Recurse $env:TEMP\lp\.agents   your-project\.agents
@@ -152,14 +152,14 @@ That's it. Read the sections below or browse [`.agents/CORE_RULES.md`](.agents/C
 The optional CLI turns the boot and close contract into three commands:
 
 ```bash
-npx @leadsolutions/lead-protocol@2.1.1 session open \
+npx @leadsolutions/lead-protocol@2.1.2 session open \
   --actor judge --agent codex --topic "Try the lifecycle" --json
 
 echo "A self-contained checkpoint body" | \
-  npx @leadsolutions/lead-protocol@2.1.1 checkpoint \
+  npx @leadsolutions/lead-protocol@2.1.2 checkpoint \
     --actor judge --agent codex --title first-checkpoint --json
 
-npx @leadsolutions/lead-protocol@2.1.1 session close \
+npx @leadsolutions/lead-protocol@2.1.2 session close \
   --actor judge --agent codex \
   --journal not-significant --status stable \
   --last-action "Verified the lifecycle." --pending-step None \
@@ -167,7 +167,7 @@ npx @leadsolutions/lead-protocol@2.1.1 session close \
 
 # Start a clean second session. The JSON receipt includes the terminal handoff
 # from the first session under `previousHandoff`, proving immediate resume.
-npx @leadsolutions/lead-protocol@2.1.1 session open \
+npx @leadsolutions/lead-protocol@2.1.2 session open \
   --actor judge --agent codex --topic "Resume from prior handoff" --json
 ```
 
@@ -198,10 +198,9 @@ examined `session open -> checkpoint -> session close`. Its specific Build Week
 contribution was to confirm and repair transactional rollback and
 receipt-ownership defects, strengthen peer-row preservation, and add regression
 coverage for pristine/malformed state, optimistic concurrency, and interrupted
-operations. This is unreleased main-branch hardening created after the v2.1.1
-tag: it is not part of the immutable npm `2.1.1` artifact, and no new package
-version, tag, or release is created by this review. The model configuration,
-Codex thread ID, findings, and validation
+operations. The hardening was created after the immutable `v2.1.1` tag and is
+published in `v2.1.2`; `v2.1.1` remains unchanged and does not contain these
+fixes. The model configuration, Codex thread ID, findings, and validation
 are recorded in the [public adversarial review](docs/build-week-2026/gpt-5.6-lifecycle-review.md).
 
 **Contribution boundary:** everything that predates the Build Week submission
@@ -304,6 +303,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
+| **2.1.2** | Publishes the Codex/GPT-5.6 transactional hardening from public PR #34: validate close fields before mutation, serialize cooperating lifecycle operations, strengthen receipt ownership and rollback, preserve peer rows byte-for-byte, and prevent live source state from leaking into packaged templates. |
 | **2.1.1** | Completes the lifecycle acceptance contract: human-readable resume context, deterministic malformed-state and interrupted-close rollback tests, hosted macOS coverage, and a package smoke test that proves continuation across two clean sessions. |
 | **2.1.0** | **Build Week executable lifecycle.** Adds `session open`, `checkpoint`, and `session close`, deterministic SHA-256 boot receipts, optimistic peer-safe registry mutation, guarded terminal handoffs, unit tests, and package-install smoke coverage. |
 | **2.0.4** | **Branch ordering rule (kernel 2.0.1).** Adds an explicit rule (PROTOCOL_RULES §P3) requiring session-close state to be committed on the feature branch before the PR is opened, not written to the default branch after merge. Adds §M-git-6 to `git-substrate.md` with git-specific enforcement and a reviewer signal for post-merge closeout PRs. Adds one checklist item to the handoff schema. Fixes #2. |
@@ -337,7 +337,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Priority | Component | Status |
 |---|---|---|
-| **P1** | CLI (`init`, `handoff`, `status`, `validate`, and session lifecycle) | ✅ Shipped in v2.1.1 |
+| **P1** | CLI (`init`, `handoff`, `status`, `validate`, and session lifecycle) | ✅ Shipped in v2.1.2 |
 | **P1** | JSON Schemas for `handoff.md` and `decisions.jsonl` | ✅ Shipped in v1.8.1 |
 | **P1** | Pre-commit hook for schema enforcement | ✅ Shipped in v1.8.2 |
 | **P2** | MCP Server (protocol operations as MCP tools) | Planned |
