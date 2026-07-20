@@ -11,6 +11,31 @@ re-stated here.
 
 ---
 
+## [2.1.2] — 2026-07-20
+
+Transactional-safety patch publishing the post-v2.1.1 lifecycle hardening from
+the public Codex and GPT-5.6 adversarial review.
+
+### Fixed
+
+- `session close` now validates and builds every terminal-handoff field before
+  mutating `active_sessions.md`. Invalid multiline or table-unsafe input leaves
+  the registry and handoff byte-identical, so a corrected close can be retried.
+- Open, checkpoint, and close operations use a fail-closed per-repository
+  transaction guard, stronger receipt ownership checks, complete compensation,
+  and exact preservation of unrelated peer rows.
+- Failed optimistic checkpoint and close mutations no longer leave orphaned
+  artifacts, partially closed sessions, or misleading success receipts.
+- Packaged templates are sanitized so live source-repository sessions,
+  decisions, checkpoints, and pair-local state cannot leak into new consumers.
+
+### Build Week evidence
+
+- The fixes were produced by the public Codex/GPT-5.6 review recorded in
+  `docs/build-week-2026/gpt-5.6-lifecycle-review.md` and merged in public PR #34.
+- Release `v2.1.1` remains immutable and does not contain these fixes; `v2.1.2`
+  is the first npm and GitHub release that includes them.
+
 ## [2.1.1] — 2026-07-18
 
 Acceptance-completion patch for public issue #28. The v2.1.0 source release is

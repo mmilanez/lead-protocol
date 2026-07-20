@@ -4,6 +4,7 @@
 > Scope: public checkout only; offline; unreleased main-branch hardening after the immutable v2.1.1 tag
 > Codex model: `gpt-5.6-sol` with `model_reasoning_effort="medium"`
 > Codex thread ID: `019f76b1-7ad4-7133-88bb-1e7f6c26dacf`
+> Release inclusion: the reviewed hardening is included in `v2.1.2`; immutable `v2.1.1` remains the pre-hardening artifact.
 
 ## Confirmed findings and disposition
 
