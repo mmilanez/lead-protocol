@@ -1,6 +1,6 @@
 # modules/git-substrate.md — Git / pull-request substrate rules
 
-> Version: 1.2.0 | Updated: 2026-06-01 | Protocol: Lead Protocol v2.0.1+
+> Version: 1.2.1 | Updated: 2026-07-20 | Protocol: Lead Protocol v2.0.1+
 > Scope: Opt-in module. Activate via `PROJECT_RULES.md §J8 Active modules: git-substrate`.
 > Applies to: repositories hosted on a git platform with pull-request support (GitHub, GitLab, Bitbucket, etc.).
 
@@ -20,7 +20,7 @@ This module extends `PROTOCOL_RULES.md` with rules specific to projects whose su
 | Project state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`, `checkpoints/*`, `sessions/active_sessions.md`) | No — operational project state, direct commit |
 | Per-pair state (`local/<actor>/<agent>/*`) | **Never committed** — gitignored per the template `.gitignore` |
 
-Branch names follow the project's convention declared in `PROJECT_RULES.md §J8` (e.g., `claude/<description>` for AI-authored work, `feat/<description>` / `fix/<description>` for human work).
+Branch names follow the project's convention declared in `PROJECT_RULES.md §J8` (e.g., `<agent-slug>/<description>` for AI-authored work, with the slug resolved through `AGENTS_MAP.md`; `feat/<description>` / `fix/<description>` for human work).
 
 ## §M-git-2 — Pull request required
 

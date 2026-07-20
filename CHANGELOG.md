@@ -11,6 +11,15 @@ re-stated here.
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- Generic AI branch guidance now uses the mapped
+  `<agent-slug>/<description>` convention instead of treating `claude/*` as
+  the default for every agent. A targeted regression test protects the
+  scaffold examples from reintroducing a vendor-specific prefix.
+
 ## [2.1.2] — 2026-07-20
 
 Transactional-safety patch publishing the post-v2.1.1 lifecycle hardening from
