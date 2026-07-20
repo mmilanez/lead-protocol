@@ -11,6 +11,35 @@ re-stated here.
 
 ---
 
+## [2.1.4] — 2026-07-20
+
+Correctness patch separating product release identity from independently
+versioned framework components and restoring one coherent eight-item handoff
+checklist contract.
+
+### Added
+
+- A versioned `.agents/manifest.json` identifies the exact installed product
+  release and shipped kernel in both the source and bundled CLI scaffolds.
+- Release metadata tooling derives the manifest from canonical package and
+  kernel sources and rejects drift across package, lockfile, README, changelog,
+  source manifest, and bundled manifest.
+- Cross-surface tests keep kernel prose, schema, validator, CLI parser, and
+  lifecycle output aligned to the same eight persisted checklist items.
+
+### Fixed
+
+- Human and JSON `status` now report Product Version and Kernel Version
+  separately. The legacy JSON `protocolVersion` field remains as a deprecated
+  kernel alias for patch compatibility.
+- Pre-manifest installations report product version `unknown` and parse the
+  kernel explicitly from `PROTOCOL_RULES.md`; `CORE_RULES.md` revision `1.5.0`
+  is never reported as protocol identity.
+- Branch ordering remains required by the git-substrate workflow but is
+  verified from git/PR evidence instead of being misdocumented as a ninth
+  persisted handoff field. Existing v2.1.3 handoffs remain valid without
+  migration.
+
 ## [2.1.3] — 2026-07-20
 
 Corrective patch ensuring the agent-neutral branch convention reaches both the

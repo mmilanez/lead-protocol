@@ -1,6 +1,6 @@
 # modules/git-substrate.md — Git / pull-request substrate rules
 
-> Version: 1.2.1 | Updated: 2026-07-20 | Protocol: Lead Protocol v2.0.1+
+> Version: 1.2.2 | Updated: 2026-07-20 | Protocol: Lead Protocol v2.0.1+
 > Scope: Opt-in module. Activate via `PROJECT_RULES.md §J8 Active modules: git-substrate`.
 > Applies to: repositories hosted on a git platform with pull-request support (GitHub, GitLab, Bitbucket, etc.).
 
@@ -60,7 +60,7 @@ All session-close state must be committed on the **feature branch** before the p
 
 **Rationale:** the default branch is typically protected (all writes require a PR). State committed after merge requires a follow-up PR for files that carry no meaningful code diff, splitting the audit trail from the work it documents and creating noise in the review history.
 
-**Agent rule:** the session-close checklist in `handoff.md` must be fully checked before the PR is opened — not after. See PROTOCOL_RULES §P3 branch ordering rule for the substrate-neutral statement.
+**Agent rule:** before opening or merging the PR, verify from git and the PR that the applicable close-state commit is on the feature branch and included in the PR head. This is derived workflow evidence, not a ninth persisted checkbox. A session that intentionally spans multiple PRs may remain active between them; its final close state must be present on the final feature branch before that PR is opened. See PROTOCOL_RULES §P3 branch ordering rule for the substrate-neutral statement.
 
 **Reviewer signal:** if a PR modifies only project-layer state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`) and the description explains it as a post-merge closeout, flag the PR. The correct fix is to reopen the feature branch with the state files included and re-merge.
 
