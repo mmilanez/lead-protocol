@@ -135,12 +135,21 @@ Exit codes: `0` = passed, `1` = validation errors, `2` = config errors.
 
 ### `status`
 
-One-screen summary of the current protocol state.
+One-screen summary of the current protocol state. Product identity comes from
+`.agents/manifest.json`; kernel identity is reported separately from
+`PROTOCOL_RULES.md`. Legacy installations without a manifest report product
+version `unknown` and never treat the `CORE_RULES.md` document revision as the
+protocol version.
 
 ```bash
 lead-protocol status         # Formatted output
 lead-protocol status --json  # JSON output
 ```
+
+JSON output exposes `productVersion` and `kernelVersion` as separate fields.
+For compatibility with existing v2.1.x consumers, `protocolVersion` remains as
+a deprecated alias of `kernelVersion`; it never reads the `CORE_RULES.md`
+document revision.
 
 ## How `<lead-protocol>` Tags Work
 

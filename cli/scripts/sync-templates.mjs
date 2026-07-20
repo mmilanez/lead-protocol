@@ -11,6 +11,7 @@
 import { cpSync, rmSync, mkdirSync, existsSync, copyFileSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateSourceManifest } from "./release-metadata.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(scriptDir, "..");
@@ -42,6 +43,11 @@ for (const file of guidelineFiles) {
   if (!existsSync(path.join(repoRoot, file))) {
     fail(`source not found: ${path.join(repoRoot, file)} (expected the template guideline at the repo root)`);
   }
+}
+
+const manifestValidation = validateSourceManifest(repoRoot);
+if (manifestValidation.errors.length > 0) {
+  fail(`${manifestValidation.errors.join("; ")}. Run npm run sync:manifest after changing release or kernel metadata.`);
 }
 
 // Start from a clean mirror so stale files never linger between builds.

@@ -1,6 +1,6 @@
 # PROTOCOL_RULES.md — Lead Protocol framework rules (generic)
 
-> Version: 2.0.1 | Updated: 2026-06-01
+> Version: 2.0.2 | Updated: 2026-07-20
 > Scope: Substrate-agnostic kernel. Opt-in modules live in `modules/` and are activated via `PROJECT_RULES.md §J8`.
 > This file contains no project-specific content — that lives in `PROJECT_RULES.md`.
 
@@ -128,10 +128,11 @@ Consequences:
 - [ ] Commit(s) follow `[Agent] <type>: <summary>` convention
 - [ ] Version bumps applied to any rules file whose content changed
 - [ ] `active_sessions.md` row for this session removed (if registry is in use)
-- [ ] Session-close state written on the feature branch before the PR is opened (when substrate uses pull requests — see §M-git-6)
 ```
 
-Schema is immutable — no agent may add sections, tables, or free paragraphs. Timestamp must include HH:MM. The session close checklist is **part of the schema**; each box is self-verified by the agent before closing. Unchecked boxes signal incomplete close to the next agent.
+Schema is immutable — no agent may add sections, tables, or free paragraphs. Timestamp must include HH:MM. The session close checklist is **part of the schema** and contains exactly the eight persisted items above; each box is self-verified by the agent before closing. Unchecked boxes signal incomplete close to the next agent.
+
+Branch ordering is a workflow verification, not a ninth persisted handoff field. When an active substrate requires feature branches and pull requests, verify the current branch, commits, and PR head/base directly through that substrate as described in its module (for git, see `modules/git-substrate.md §M-git-6`).
 
 Each pair `(actor, agent)` has its own `handoff.md` — agents operated by the same actor never compete for writes on the same file. When the owner wants to hand context from one agent to another, the path is **publishing a checkpoint in `.agents/checkpoints/`**, not overwriting the peer's handoff.
 
@@ -210,11 +211,11 @@ At the end of a non-trivial session, the agent **must** update every applicable 
 
 ### Branch ordering rule *(v2.0.1+)*
 
-Session close is the **final operational step on the feature branch**. Complete all session-close artifacts — handoff, decisions, lessons, and JOURNAL updates — before opening or merging the pull request.
+Session close is the **final operational step on the feature branch**. Complete all session-close artifacts that belong to a pull request before opening or merging that pull request.
 
 **Why this order matters:** if session-close state is written on the default branch after merge, protected-branch settings may block the write or force a follow-up PR for state files only. This creates unnecessary review overhead and an audit gap where the handoff describes work that is not yet in the branch history.
 
-**Implementation rule:** the session-close checklist in `handoff.md` is complete (all boxes checked) when the pull request is **opened**, not after it merges. Agents must not mark the session closed and then create a separate follow-up PR to write state files.
+**Implementation rule:** verify branch ordering from the substrate itself — current branch, included commits, and pull-request head/base — before opening or merging the pull request. Do not encode this proof as a ninth handoff checklist property. A workflow spanning multiple pull requests may keep its session active between them; its final close state must still be committed on the final feature branch before that branch's pull request is opened.
 
 This rule is substrate-neutral. Git-specific enforcement and rationale live in the active substrate module (see `modules/git-substrate.md §M-git-6`).
 

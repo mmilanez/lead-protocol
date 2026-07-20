@@ -120,6 +120,19 @@ try {
   if (!existsSync(path.join(target, ".agents", "CORE_RULES.md"))) {
     throw new Error(".agents/ was not created by init");
   }
+  const installedManifestPath = path.join(target, ".agents", "manifest.json");
+  if (!existsSync(installedManifestPath)) throw new Error(".agents/manifest.json was not created by init");
+  const installedManifest = JSON.parse(readFileSync(installedManifestPath, "utf8"));
+  const installedPackage = JSON.parse(readFileSync(path.join(installed, "package.json"), "utf8"));
+  if (installedManifest.manifest_version !== 1 || installedManifest.product_version !== installedPackage.version) {
+    throw new Error(`installed manifest does not identify product ${installedPackage.version}`);
+  }
+  const protocolRules = readFileSync(path.join(target, ".agents", "PROTOCOL_RULES.md"), "utf8");
+  const kernelVersion = protocolRules.match(/^>\s*Version:\s*(\d+\.\d+\.\d+)\s*\|/m)?.[1];
+  if (!kernelVersion || installedManifest.kernel_version !== kernelVersion) {
+    throw new Error(`installed manifest kernel ${installedManifest.kernel_version} does not match PROTOCOL_RULES ${kernelVersion ?? "missing"}`);
+  }
+  console.log(`[test-pack] OK: installed manifest identifies product ${installedPackage.version} and kernel ${kernelVersion}`);
 
   for (const relativePath of [
     path.join(".agents", "PROJECT_RULES.md"),
@@ -149,8 +162,21 @@ try {
   );
 
   run("validate", `node ${q(bin)} validate`, { cwd: target });
-  run("status", `node ${q(bin)} status`, { cwd: target });
+  const humanStatus = capture("status", `node ${q(bin)} status`, { cwd: target });
+  if (!humanStatus.includes("Product Version") || !humanStatus.includes(installedPackage.version)) {
+    throw new Error("human status does not report the installed product version");
+  }
+  if (!humanStatus.includes("Kernel Version") || !humanStatus.includes(kernelVersion)) {
+    throw new Error("human status does not report the installed kernel version");
+  }
+  if (humanStatus.includes("Protocol Version")) throw new Error("human status still uses the ambiguous Protocol Version label");
   const pristineStatus = JSON.parse(capture("status --json", `node ${q(bin)} status --json`, { cwd: target }));
+  if (pristineStatus.productVersion !== installedPackage.version || pristineStatus.kernelVersion !== kernelVersion) {
+    throw new Error(`JSON status version identity mismatch: ${JSON.stringify(pristineStatus)}`);
+  }
+  if (pristineStatus.protocolVersion !== kernelVersion) {
+    throw new Error("JSON status backward-compatible protocolVersion alias does not identify the kernel");
+  }
   if (pristineStatus.activeSessions !== 0) {
     throw new Error(`fresh install inherited ${pristineStatus.activeSessions} active session(s)`);
   }
@@ -166,6 +192,23 @@ try {
     throw new Error(`fresh install inherited unexpected session artifacts: ${pristineSessionFiles.join(", ")}`);
   }
   console.log("[test-pack] OK: fresh install contains no source-repository sessions, decisions, or checkpoints");
+
+  const legacyTarget = path.join(tmp, "legacy-project");
+  mkdirSync(legacyTarget);
+  run("legacy init --yes", `node ${q(bin)} init --yes`, { cwd: legacyTarget });
+  rmSync(path.join(legacyTarget, ".agents", "manifest.json"));
+  const legacyJson = JSON.parse(capture("legacy status --json", `node ${q(bin)} status --json`, { cwd: legacyTarget }));
+  const legacyHuman = capture("legacy status", `node ${q(bin)} status`, { cwd: legacyTarget });
+  if (legacyJson.productVersion !== "unknown" || legacyJson.kernelVersion !== kernelVersion) {
+    throw new Error(`legacy fallback version identity mismatch: ${JSON.stringify(legacyJson)}`);
+  }
+  if (legacyJson.protocolVersion !== kernelVersion) {
+    throw new Error("legacy JSON protocolVersion alias does not identify the kernel");
+  }
+  if (legacyHuman.includes("Protocol Version") || legacyHuman.includes("1.5.0")) {
+    throw new Error("legacy fallback misreports CORE_RULES 1.5.0 as protocol identity");
+  }
+  console.log("[test-pack] OK: pre-manifest fallback reports unknown product and the actual kernel");
 
   // 5. Exercise the exact installed lifecycle binary without rebuilding.
   run(

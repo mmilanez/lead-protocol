@@ -20,6 +20,17 @@ interface DecisionEntry {
   status: string;
 }
 
+interface VersionManifest {
+  manifest_version: number;
+  product_version: string;
+  kernel_version: string;
+}
+
+interface VersionIdentity {
+  productVersion: string;
+  kernelVersion: string;
+}
+
 function readLastDecisions(
   agentsDir: string,
   count: number,
@@ -60,13 +71,40 @@ function countActiveSessions(agentsDir: string): number {
   return rows.length;
 }
 
-function readProtocolVersion(agentsDir: string): string | null {
-  const corePath = path.join(agentsDir, "CORE_RULES.md");
-  if (!existsSync(corePath)) return null;
+function readKernelVersion(agentsDir: string): string | null {
+  const protocolPath = path.join(agentsDir, "PROTOCOL_RULES.md");
+  if (!existsSync(protocolPath)) return null;
 
-  const text = readFileSync(corePath, "utf-8");
-  const match = text.match(/Version:\s*(\S+)/);
+  const text = readFileSync(protocolPath, "utf-8");
+  const match = text.match(/^>\s*Version:\s*(\d+\.\d+\.\d+)\s*\|/m);
   return match?.[1] ?? null;
+}
+
+export function readVersionIdentity(agentsDir: string): VersionIdentity {
+  const explicitKernelVersion = readKernelVersion(agentsDir) ?? "unknown";
+  const manifestPath = path.join(agentsDir, "manifest.json");
+  if (!existsSync(manifestPath)) {
+    return { productVersion: "unknown", kernelVersion: explicitKernelVersion };
+  }
+
+  try {
+    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8")) as Partial<VersionManifest>;
+    const validVersion = (value: unknown): value is string =>
+      typeof value === "string" && /^\d+\.\d+\.\d+$/.test(value);
+    if (
+      manifest.manifest_version !== 1 ||
+      !validVersion(manifest.product_version) ||
+      !validVersion(manifest.kernel_version)
+    ) {
+      return { productVersion: "unknown", kernelVersion: explicitKernelVersion };
+    }
+    return {
+      productVersion: manifest.product_version,
+      kernelVersion: explicitKernelVersion === "unknown" ? manifest.kernel_version : explicitKernelVersion,
+    };
+  } catch {
+    return { productVersion: "unknown", kernelVersion: explicitKernelVersion };
+  }
 }
 
 export function registerStatusCommand(program: Command): void {
@@ -87,12 +125,15 @@ export function registerStatusCommand(program: Command): void {
       const pairs = discoverPairs(agentsDir);
       const decisions = readLastDecisions(agentsDir, 3);
       const activeSessions = countActiveSessions(agentsDir);
-      const protocolVersion = readProtocolVersion(agentsDir) ?? "unknown";
+      const { productVersion, kernelVersion } = readVersionIdentity(agentsDir);
 
       if (opts.json) {
         const data = {
           project: projectName,
-          protocolVersion,
+          productVersion,
+          kernelVersion,
+          // Backward-compatible v2.1.x alias. New consumers should use kernelVersion.
+          protocolVersion: kernelVersion,
           activeSessions,
           pairs: pairs.map((p) => {
             const text = readFileSync(p.handoffPath, "utf-8");
@@ -176,7 +217,10 @@ export function registerStatusCommand(program: Command): void {
       console.log();
       console.log(ui.label("  Active Sessions", String(activeSessions)));
       console.log(
-        ui.label("  Protocol Version", protocolVersion),
+        ui.label("  Product Version", productVersion),
+      );
+      console.log(
+        ui.label("  Kernel Version", kernelVersion),
       );
       console.log();
     });
