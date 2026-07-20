@@ -4,11 +4,17 @@ on:
   pull_request:
     paths:
       - 'cli/**'
+      - '.agents/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
       - '.github/workflows/cli-lifecycle.yml'
   push:
     branches: [main]
     paths:
       - 'cli/**'
+      - '.agents/**'
+      - 'AGENTS.md'
+      - 'CLAUDE.md'
       - '.github/workflows/cli-lifecycle.yml'
 
 permissions:

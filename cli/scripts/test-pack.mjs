@@ -30,6 +30,16 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const pkgRoot = path.resolve(scriptDir, "..");
 const q = (p) => `"${p}"`;
 
+function listRelativeEntries(root, current = root) {
+  const entries = [];
+  for (const item of readdirSync(current, { withFileTypes: true })) {
+    const absolute = path.join(current, item.name);
+    entries.push(path.relative(root, absolute));
+    if (item.isDirectory()) entries.push(...listRelativeEntries(root, absolute));
+  }
+  return entries;
+}
+
 function run(label, cmd, opts = {}) {
   console.log(`\n[test-pack] ${label}\n[test-pack] $ ${cmd}`);
   execSync(cmd, { stdio: "inherit", ...opts });
@@ -82,6 +92,20 @@ try {
   }
   console.log("[test-pack] OK: dist/templates shipped inside the installed package");
 
+  const shippedTemplates = path.join(installed, "dist", "templates");
+  const excludedCacheArtifacts = listRelativeEntries(shippedTemplates).filter((relative) => {
+    const segments = relative.split(path.sep);
+    return (
+      segments.includes("__pycache__") ||
+      segments.includes(".pytest_cache") ||
+      /\.(pyc|pyo)$/i.test(segments.at(-1))
+    );
+  });
+  if (excludedCacheArtifacts.length > 0) {
+    throw new Error(`excluded cache artifacts shipped in package: ${excludedCacheArtifacts.join(", ")}`);
+  }
+  console.log("[test-pack] OK: installed scaffold contains no Python cache artifacts");
+
   // 4. Run init / validate / status in a clean target dir.
   const target = path.join(tmp, "project");
   mkdirSync(target);
@@ -96,6 +120,21 @@ try {
   if (!existsSync(path.join(target, ".agents", "CORE_RULES.md"))) {
     throw new Error(".agents/ was not created by init");
   }
+
+  for (const relativePath of [
+    path.join(".agents", "PROJECT_RULES.md"),
+    path.join(".agents", "modules", "git-substrate.md"),
+  ]) {
+    const text = readFileSync(path.join(target, relativePath), "utf-8");
+    if (!text.includes("`<agent-slug>/<description>`")) {
+      throw new Error(`${relativePath} is missing the agent-neutral branch convention`);
+    }
+    if (text.includes("`claude/*`") || text.includes("`claude/<description>`")) {
+      throw new Error(`${relativePath} still uses a vendor-specific generic branch default`);
+    }
+  }
+  console.log("[test-pack] OK: installed scaffold uses agent-neutral branch guidance");
+
   console.log("[test-pack] OK: init created .agents/ and tagged CLAUDE.md / AGENTS.md");
 
   // Materialize the minimum project configuration required by the canonical
