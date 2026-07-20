@@ -11,7 +11,10 @@ re-stated here.
 
 ---
 
-## [Unreleased]
+## [2.1.3] — 2026-07-20
+
+Corrective patch ensuring the agent-neutral branch convention reaches both the
+source scaffold and projects initialized by the npm CLI.
 
 ### Fixed
 
@@ -19,6 +22,16 @@ re-stated here.
   `<agent-slug>/<description>` convention instead of treating `claude/*` as
   the default for every agent. A targeted regression test protects the
   scaffold examples from reintroducing a vendor-specific prefix.
+- The CLI package now rebuilds and ships those corrected scaffold files in
+  `dist/templates/`, so registry-installed `npx ... init` produces the same
+  agent-neutral guidance as the repository scaffold.
+- Template bundling and package smoke validation now exclude and reject Python
+  bytecode/cache artifacts, including repeated-build scenarios.
+
+### Changed
+
+- CLI lifecycle and exact-package smoke checks now run when root scaffold
+  inputs change, not only when files already under `cli/` change.
 
 ## [2.1.2] — 2026-07-20
 

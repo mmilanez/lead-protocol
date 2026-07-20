@@ -19,10 +19,20 @@ const dest = path.resolve(pkgRoot, "dist", "templates");
 
 const agentsSrc = path.join(repoRoot, ".agents");
 const guidelineFiles = ["AGENTS.md", "CLAUDE.md"];
+const excludedDirectoryNames = new Set(["local", "__pycache__", ".pytest_cache"]);
 
 function fail(message) {
   console.error(`[sync-templates] ${message}`);
   process.exit(1);
+}
+
+function shouldCopyAgentPath(src) {
+  const relative = path.relative(agentsSrc, src);
+  if (!relative) return true;
+
+  const segments = relative.split(path.sep);
+  if (segments.some((segment) => excludedDirectoryNames.has(segment))) return false;
+  return !/\.(pyc|pyo)$/i.test(segments.at(-1));
 }
 
 if (!existsSync(agentsSrc)) {
@@ -38,10 +48,11 @@ for (const file of guidelineFiles) {
 rmSync(dest, { recursive: true, force: true });
 mkdirSync(dest, { recursive: true });
 
-// Copy .agents/, skipping any per-user state (local/) that must never ship in a template.
+// Copy .agents/, skipping per-user state and generated Python caches that must
+// never ship in a template or npm package.
 cpSync(agentsSrc, path.join(dest, ".agents"), {
   recursive: true,
-  filter: (src) => path.relative(agentsSrc, src).split(path.sep)[0] !== "local",
+  filter: shouldCopyAgentPath,
 });
 
 // The repository's registry is live project state, not a distributable default.
