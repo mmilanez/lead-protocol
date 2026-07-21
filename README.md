@@ -212,14 +212,16 @@ deterministic receipts; reject unconfigured pristine project state; and hold the
 review to a public-only, offline boundary.
 
 For this public-only adversarial review, **GPT-5.6 Sol (Medium)** independently
-examined `session open -> checkpoint -> session close`. Its specific Build Week
-contribution was to confirm and repair transactional rollback and
-receipt-ownership defects, strengthen peer-row preservation, and add regression
-coverage for pristine/malformed state, optimistic concurrency, and interrupted
-operations. The hardening was created after the immutable `v2.1.1` tag and is
-published in `v2.1.2`; `v2.1.1` remains unchanged and does not contain these
-fixes. The model configuration, Codex thread ID, findings, and validation
-are recorded in the [public adversarial review](docs/build-week-2026/gpt-5.6-lifecycle-review.md).
+examined the `session open -> checkpoint -> session close` lifecycle. The review
+identified real defects involving transactional rollback, receipt ownership,
+peer-row preservation, pristine or malformed state, optimistic concurrency, and
+interrupted operations. Codex and the maintainer turned those findings into
+public fixes and regression tests.
+
+That hardening first shipped in `v2.1.2` and remains part of the current
+`v2.1.4` release. `v2.1.1` is immutable and does not contain those fixes. The
+model configuration, Codex thread ID, findings, and validation are recorded in
+the [public adversarial review](docs/build-week-2026/gpt-5.6-lifecycle-review.md).
 
 **Contribution boundary:** everything that predates the Build Week submission
 period beginning on 2026-07-13 is pre-existing work and is not claimed for the
