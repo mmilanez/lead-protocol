@@ -1,8 +1,8 @@
 # Lead Protocol
 
-**A shift-change logbook for your AI coding assistants.**
+**Continuity state for AI coding agents.**
 
-When one AI session ends, it writes down what it did, what's left, and why it made the calls it made. The next session — even a different tool, even days later — reads that and picks up where the last one stopped. Nothing forgotten, nothing re-explained.
+When one AI coding session ends, it records what it did, what remains, and why it made the calls it made. The next session — in the same tool or a different one, minutes or days later — can read that state and continue from there.
 
 > Current version: **2.0.3**
 
@@ -10,7 +10,7 @@ When one AI session ends, it writes down what it did, what's left, and why it ma
 
 ## The problem
 
-You've probably hit this: you spend an afternoon working through a problem with an AI assistant, close the chat, and the next day it remembers none of it. Open a different tool — Claude Code instead of Cursor — and you start from zero again. Ask it later *why* it made some change, and there's no record.
+You've probably hit this: you spend an afternoon working through a problem with an AI assistant, close the session, and the next day it remembers none of it. Open the next session in a different tool and you start from zero again. Ask it later *why* it made some change, and there's no record.
 
 When more than one AI assistant works on the same project — across different days, tools, and people — there's no shared place for them to leave notes for each other. So context gets lost, decisions go unexplained, and interrupted work is hard to resume.
 
@@ -74,8 +74,8 @@ your-project/
 │           ├── activity.log             # Per-pair raw activity log
 │           └── lessons.md               # Personal lessons for this pair
 ├── .gitignore                           # Ignores .agents/local/
-├── CLAUDE.md                            # Pointer for Claude Code
-└── AGENTS.md                            # Pointer for other agents
+├── CLAUDE.md                            # Compatibility pointer for Claude Code
+└── AGENTS.md                            # Universal pointer for agent tools
 ```
 
 The bundled Python scripts are validation and migration helpers — you do not need them to get started.
@@ -87,7 +87,8 @@ Lead Protocol fills the operational-state slot in the broader agent stack:
 
 ```
 ┌─────────────────────────────────────────────┐
-│  Agentic IDE (Cursor, Claude Code, Windsurf)│  ← where you work
+│  Agent tools (Codex, Cursor, Gemini,        │  ← where you work
+│              Claude Code, Windsurf)         │
 ├─────────────────────────────────────────────┤
 │  Communication (MCP, A2A)                   │  ← how agents connect
 ├─────────────────────────────────────────────┤
@@ -186,7 +187,7 @@ Every file under `.agents/` belongs to exactly one of three layers:
 <details>
 <summary>Why the pair (actor × agent) is the unit of concurrency</summary>
 
-The smallest unit that owns volatile state is the pair `(actor, agent)`, not the actor alone. Claude Code, Codex, Gemini, and Cursor operated by the same human each get their own `local/<actor>/<agent>/`. That is what makes cross-agent interchange in the same project viable — agents never overwrite each other's handoff.
+The smallest unit that owns volatile state is the pair `(actor, agent)`, not the actor alone. Codex, Cursor, Gemini, Claude Code, and other agents operated by the same human each get their own `local/<actor>/<agent>/`. That is what makes cross-agent interchange in the same project viable — agents never overwrite each other's handoff.
 
 Full detail: `.agents/PROTOCOL_RULES.md §P3 — Three-layer state model`.
 
@@ -196,7 +197,7 @@ Full detail: `.agents/PROTOCOL_RULES.md §P3 — Three-layer state model`.
 
 ## How agents boot in your project
 
-> You don't run these steps — your AI agent does, automatically, the moment it reads `CLAUDE.md`. This section explains what's happening under the hood.
+> You don't run these steps — your AI agent does, automatically, when it reads an applicable root pointer such as `AGENTS.md`. This section explains what's happening under the hood.
 
 Every compliant agent reads, in order:
 
@@ -209,7 +210,7 @@ Every compliant agent reads, in order:
 
 `PROTOCOL_RULES.md` itself is read **on demand**, not in the baseline — `CORE_RULES.md` points agents there when needed. This keeps baseline cost bounded. See `PROTOCOL_RULES.md §P-Access` for the full load contract.
 
-Pointer files `CLAUDE.md` and `AGENTS.md` at the project root exist so each vendor-specific agent tool discovers `.agents/` without custom configuration.
+The universal `AGENTS.md` pointer and tool-specific compatibility pointers such as `CLAUDE.md` let agent tools discover `.agents/` without custom configuration.
 
 ---
 
