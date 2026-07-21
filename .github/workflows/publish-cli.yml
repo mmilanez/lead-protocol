@@ -1,0 +1,83 @@
+name: Publish CLI to npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing release tag to publish
+        required: true
+        type: choice
+        options:
+          - v2.1.2
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: npm-publish-${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: npm publish
+    runs-on: ubuntu-latest
+    env:
+      TARGET_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || inputs.release_tag }}
+
+    steps:
+      - name: Check out the immutable release tag
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TARGET_TAG }}
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.14.0'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install npm with OIDC support
+        run: npm install --global npm@11.5.1
+
+      - name: Validate release and package identity
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          if [[ "$GITHUB_EVENT_NAME" == "workflow_dispatch" && "$TARGET_TAG" != "v2.1.2" ]]; then
+            echo "::error::Manual publication is restricted to v2.1.2"
+            exit 1
+          fi
+
+          checked_out_tag="$(git describe --tags --exact-match HEAD)"
+          package_version="$(node -p "require('./cli/package.json').version")"
+          release_draft="$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TARGET_TAG}" --jq '.draft')"
+
+          [[ "$checked_out_tag" == "$TARGET_TAG" ]]
+          [[ "v${package_version}" == "$TARGET_TAG" ]]
+          [[ "$release_draft" == "false" ]]
+
+          node --version
+          npm --version
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: cli
+
+      - name: Verify package
+        run: |
+          npm run typecheck
+          npm test
+          npm run test:pack
+        working-directory: cli
+
+      - name: Publish with npm trusted publishing
+        run: npm publish --access public --provenance
+        working-directory: cli

@@ -1,0 +1,27 @@
+import { createRequire } from "node:module";
+import { Command } from "commander";
+import { registerInitCommand } from "./commands/init.js";
+import { registerHandoffCommand } from "./commands/handoff.js";
+import { registerValidateCommand } from "./commands/validate.js";
+import { registerStatusCommand } from "./commands/status.js";
+import { registerSessionCommand } from "./commands/session.js";
+import { registerCheckpointCommand } from "./commands/checkpoint.js";
+
+const require = createRequire(import.meta.url);
+const pkg = require("../package.json");
+
+const program = new Command();
+
+program
+  .name("lead-protocol")
+  .description("CLI tooling for the Lead Protocol — multi-agent coordination framework")
+  .version(pkg.version, "-v, --version");
+
+registerInitCommand(program);
+registerHandoffCommand(program);
+registerValidateCommand(program);
+registerStatusCommand(program);
+registerSessionCommand(program);
+registerCheckpointCommand(program);
+
+program.parse();

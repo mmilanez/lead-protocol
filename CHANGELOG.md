@@ -11,6 +11,144 @@ re-stated here.
 
 ---
 
+## [2.1.4] — 2026-07-20
+
+Correctness patch separating product release identity from independently
+versioned framework components and restoring one coherent eight-item handoff
+checklist contract.
+
+### Added
+
+- A versioned `.agents/manifest.json` identifies the exact installed product
+  release and shipped kernel in both the source and bundled CLI scaffolds.
+- Release metadata tooling derives the manifest from canonical package and
+  kernel sources and rejects drift across package, lockfile, README, changelog,
+  source manifest, and bundled manifest.
+- Cross-surface tests keep kernel prose, schema, validator, CLI parser, and
+  lifecycle output aligned to the same eight persisted checklist items.
+
+### Fixed
+
+- Human and JSON `status` now report Product Version and Kernel Version
+  separately. The legacy JSON `protocolVersion` field remains as a deprecated
+  kernel alias for patch compatibility.
+- Pre-manifest installations report product version `unknown` and parse the
+  kernel explicitly from `PROTOCOL_RULES.md`; `CORE_RULES.md` revision `1.5.0`
+  is never reported as protocol identity.
+- Branch ordering remains required by the git-substrate workflow but is
+  verified from git/PR evidence instead of being misdocumented as a ninth
+  persisted handoff field. Existing v2.1.3 handoffs remain valid without
+  migration.
+
+## [2.1.3] — 2026-07-20
+
+Corrective patch ensuring the agent-neutral branch convention reaches both the
+source scaffold and projects initialized by the npm CLI.
+
+### Fixed
+
+- Generic AI branch guidance now uses the mapped
+  `<agent-slug>/<description>` convention instead of treating `claude/*` as
+  the default for every agent. A targeted regression test protects the
+  scaffold examples from reintroducing a vendor-specific prefix.
+- The CLI package now rebuilds and ships those corrected scaffold files in
+  `dist/templates/`, so registry-installed `npx ... init` produces the same
+  agent-neutral guidance as the repository scaffold.
+- Template bundling and package smoke validation now exclude and reject Python
+  bytecode/cache artifacts, including repeated-build scenarios.
+
+### Changed
+
+- CLI lifecycle and exact-package smoke checks now run when root scaffold
+  inputs change, not only when files already under `cli/` change.
+
+## [2.1.2] — 2026-07-20
+
+Transactional-safety patch publishing the post-v2.1.1 lifecycle hardening from
+the public Codex and GPT-5.6 adversarial review.
+
+### Fixed
+
+- `session close` now validates and builds every terminal-handoff field before
+  mutating `active_sessions.md`. Invalid multiline or table-unsafe input leaves
+  the registry and handoff byte-identical, so a corrected close can be retried.
+- Open, checkpoint, and close operations use a fail-closed per-repository
+  transaction guard, stronger receipt ownership checks, complete compensation,
+  and exact preservation of unrelated peer rows.
+- Failed optimistic checkpoint and close mutations no longer leave orphaned
+  artifacts, partially closed sessions, or misleading success receipts.
+- Packaged templates are sanitized so live source-repository sessions,
+  decisions, checkpoints, and pair-local state cannot leak into new consumers.
+
+### Build Week evidence
+
+- The fixes were produced by the public Codex/GPT-5.6 review recorded in
+  `docs/build-week-2026/gpt-5.6-lifecycle-review.md` and merged in public PR #34.
+- Release `v2.1.1` remains immutable and does not contain these fixes; `v2.1.2`
+  is the first npm and GitHub release that includes them.
+
+## [2.1.1] — 2026-07-18
+
+Acceptance-completion patch for public issue #28. The v2.1.0 source release is
+preserved; this patch closes the gaps found by a post-merge audit.
+
+### Added
+
+- Human-readable `session open` output now prints the previous status, pending
+  step, blockers, and open threads.
+- Hosted Node 18 lifecycle CI on macOS in addition to Windows and Ubuntu.
+- Deterministic tests for malformed existing handoffs and interrupted-close
+  registry rollback. Lifecycle unit coverage is now 7 tests.
+- The production tarball smoke test now opens a clean second session, verifies
+  the previous terminal handoff, and closes that resumed session.
+- README and CLI documentation include a reproducible two-session resume flow.
+
+### Fixed
+
+- Interrupted close restores the owned active-session row when terminal
+  handoff replacement fails, and does not emit a misleading close receipt.
+- Consecutive sessions from the same pair within one UTC minute retain the
+  canonical ID as a base and receive deterministic `-2`, `-3` suffixes instead
+  of colliding with preserved receipt filenames.
+
+## [2.1.0] — 2026-07-18
+
+OpenAI Build Week extension. Lead Protocol itself predates the July 13, 2026
+submission-period start; this release isolates the new executable lifecycle so
+the added work can be evaluated independently.
+
+### Added
+
+- `lead-protocol session open` with actor/agent resolution, safe duplicate-pair
+  failure, pair-local `IN_PROGRESS` handoff transition, active-session
+  registration, and a JSON boot receipt containing canonical ordered files and
+  SHA-256 hashes.
+- `lead-protocol checkpoint` with UTC filenames, exclusive creation, active
+  session ownership, stdin/file input, and exact-row checkpoint pointer update.
+- `lead-protocol session close` with explicit JOURNAL significance, terminal
+  handoff fields, checklist confirmation, handoff/decision validation, exact-row
+  removal, and a machine-readable close receipt.
+- Node test coverage for the full lifecycle, duplicate sessions, peer-row
+  preservation, malformed duplicate IDs, CRLF preservation, and JOURNAL guard.
+- Production tarball smoke coverage that installs the package into a clean
+  project and runs `open -> checkpoint -> close` without rebuilding.
+
+### Safety
+
+- Existing registry prose, newline style, and unrelated peer rows are
+  preserved.
+- State replacements use byte comparison before sibling-temp replacement and
+  fail rather than overwrite concurrent changes.
+- Multi-file failures use conditional rollback where safe; partial receipt
+  failures are reported and never presented as success.
+
+### Build Week boundary
+
+- Public issue: #28.
+- PRs #22, #26, and #27 and their commits predate the submission period and are
+  intentionally excluded from this release branch. They require rebase and
+  renumbering after 2.1.0.
+
 ## [2.0.3] — 2026-06-01
 
 Security patch and public-repo polish. No kernel or schema changes — the

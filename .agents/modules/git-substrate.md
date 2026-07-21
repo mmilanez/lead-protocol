@@ -1,6 +1,6 @@
 # modules/git-substrate.md — Git / pull-request substrate rules
 
-> Version: 1.1.0 | Updated: 2026-04-21 | Protocol: Lead Protocol v2.0.0+
+> Version: 1.2.2 | Updated: 2026-07-20 | Protocol: Lead Protocol v2.0.1+
 > Scope: Opt-in module. Activate via `PROJECT_RULES.md §J8 Active modules: git-substrate`.
 > Applies to: repositories hosted on a git platform with pull-request support (GitHub, GitLab, Bitbucket, etc.).
 
@@ -20,7 +20,7 @@ This module extends `PROTOCOL_RULES.md` with rules specific to projects whose su
 | Project state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`, `checkpoints/*`, `sessions/active_sessions.md`) | No — operational project state, direct commit |
 | Per-pair state (`local/<actor>/<agent>/*`) | **Never committed** — gitignored per the template `.gitignore` |
 
-Branch names follow the project's convention declared in `PROJECT_RULES.md §J8` (e.g., `claude/<description>` for AI-authored work, `feat/<description>` / `fix/<description>` for human work).
+Branch names follow the project's convention declared in `PROJECT_RULES.md §J8` (e.g., `<agent-slug>/<description>` for AI-authored work, with the slug resolved through `AGENTS_MAP.md`; `feat/<description>` / `fix/<description>` for human work).
 
 ## §M-git-2 — Pull request required
 
@@ -53,6 +53,18 @@ The `PROTOCOL_RULES §P3` commit convention (`[Agent] <type>: <summary>`) applie
 ## §M-git-5 — `.gitignore` baseline
 
 The template ships a `.gitignore` that ignores `.agents/local/`. This is non-negotiable for git-substrate projects: committing per-pair state leaks personal context and creates spurious merge conflicts on every session. If a project using this module lacks the line `.agents/local/` in its `.gitignore`, treat the omission as a bug and fix it before any session close that would commit state.
+
+## §M-git-6 — Session close ordering before PR merge *(v1.2.0+)*
+
+All session-close state must be committed on the **feature branch** before the pull request is opened. Writing operational state to the default branch after merge is not permitted.
+
+**Rationale:** the default branch is typically protected (all writes require a PR). State committed after merge requires a follow-up PR for files that carry no meaningful code diff, splitting the audit trail from the work it documents and creating noise in the review history.
+
+**Agent rule:** before opening or merging the PR, verify from git and the PR that the applicable close-state commit is on the feature branch and included in the PR head. This is derived workflow evidence, not a ninth persisted checkbox. A session that intentionally spans multiple PRs may remain active between them; its final close state must be present on the final feature branch before that PR is opened. See PROTOCOL_RULES §P3 branch ordering rule for the substrate-neutral statement.
+
+**Reviewer signal:** if a PR modifies only project-layer state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`) and the description explains it as a post-merge closeout, flag the PR. The correct fix is to reopen the feature branch with the state files included and re-merge.
+
+**Interaction with §M-git-1:** project-layer state files (`JOURNAL.md`, `LESSONS.md`, `decisions.jsonl`) normally allow direct commit without branching. §M-git-6 does not override that — it restricts **when** that direct commit may happen relative to PR lifecycle. When a PR is open for branched work, write your state to the feature branch before merge, not directly to the default branch after.
 
 ## Optional tooling that ships with the template
 

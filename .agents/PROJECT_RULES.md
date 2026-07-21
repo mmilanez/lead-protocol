@@ -1,6 +1,6 @@
 # PROJECT_RULES.md — [Project Name]
 
-> Version: 2.0.0 | Updated: YYYY-MM-DD | Protocol: Lead Protocol v2.0.0
+> Version: 2.0.1 | Updated: 2026-07-20 | Protocol: Lead Protocol v2.0.0
 > Scope: Project-specific rules. Never overwritten by framework upgrades.
 
 ---
@@ -72,6 +72,6 @@ When creating, renaming, or removing any file:
 - **Session Protocol level:** [e.g., Level 1 — usage on-demand, no formal start/end ceremony]
 - **Active substrate:** [one of: `git+github` | `git` | `local` | `cloud-sync` | `other`]
 - **Active modules:** [comma-separated scope names from `.agents/modules/`, or `none`. Example: `git-substrate` for a standard GitHub-hosted repo.]
-- **Branch / change-control convention:** [e.g., AI work on `claude/*` branches, no direct push to default branch. Substrate-specific details live in the active substrate module.]
+- **Branch / change-control convention:** [e.g., AI work on `<agent-slug>/<description>` branches, with `<agent-slug>` resolved through `AGENTS_MAP.md`; no direct push to the default branch. Substrate-specific details live in the active substrate module.]
 
 > **Upgrading from Lead Protocol v1.x to v2.0.0:** state-layout changed structurally (three layers with actor × agent sub-dimension). Run `.agents/scripts/migrate_to_v2.py` against this project to move legacy `agent_log/*` into the new layout. Details: `modules/meta-repo.md §M-meta-4` and the migration script's `--help`.

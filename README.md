@@ -4,7 +4,7 @@
 
 When one AI coding session ends, it records what it did, what remains, and why it made the calls it made. The next session — in the same tool or a different one, minutes or days later — can read that state and continue from there.
 
-> Current version: **2.0.3**
+> Current version: **2.1.4**
 
 ---
 
@@ -38,7 +38,7 @@ Lead Protocol is a set of structured files committed to your git repository:
 - **`JOURNAL.md`** — curated timeline of structurally significant deliveries
 - **`LESSONS.md`** — mistakes not to repeat, searchable by tag
 
-Any agent that can read text files can use it. No runtime, no database, no API keys — it's just files in your git repo. A CLI and MCP server are on the roadmap, but you never need them to use Lead Protocol today.
+Any agent that can read text files can use it. No database or API keys are required — it's just files in your git repo. The optional Node.js CLI can now execute a verifiable session lifecycle; an MCP server remains on the roadmap.
 
 In practice, the whole protocol is a single folder of markdown and JSON files dropped into your repository:
 
@@ -46,6 +46,7 @@ In practice, the whole protocol is a single folder of markdown and JSON files dr
 your-project/
 ├── .agents/
 │   ├── CORE_RULES.md                    # Rules index + essential contracts (read first)
+│   ├── manifest.json                    # Installed product release + kernel identity
 │   ├── PROTOCOL_RULES.md                # Framework kernel (substrate-agnostic, upgradable)
 │   ├── PROJECT_RULES.md                 # Your project's identity and context — edit this
 │   ├── JOURNAL.md                       # Curated timeline of structurally significant deliveries
@@ -111,7 +112,7 @@ Lead Protocol fills the operational-state slot in the broader agent stack:
 ```bash
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.0.3 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
+git clone --branch v2.1.4 --depth 1 https://github.com/mmilanez/lead-protocol.git /tmp/lp
 
 # Copy the scaffold into your project
 cp -R /tmp/lp/.agents   your-project/.agents
@@ -131,7 +132,7 @@ python .agents/scripts/validate_state.py
 ```powershell
 # Clone the latest stable release
 # Check https://github.com/mmilanez/lead-protocol/releases for the current version number
-git clone --branch v2.0.3 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
+git clone --branch v2.1.4 --depth 1 https://github.com/mmilanez/lead-protocol.git $env:TEMP\lp
 
 # Copy the scaffold into your project
 Copy-Item -Recurse $env:TEMP\lp\.agents   your-project\.agents
@@ -147,6 +148,87 @@ python .agents/scripts/validate_state.py
 ```
 
 That's it. Read the sections below or browse [`.agents/CORE_RULES.md`](.agents/CORE_RULES.md) to understand how agents use the protocol inside your project.
+
+### Product and kernel versions
+
+`.agents/manifest.json` is the machine-readable identity of the installed
+scaffold. `product_version` is the exact Lead Protocol release that produced
+the scaffold; `kernel_version` identifies the shipped `PROTOCOL_RULES.md`
+contract. `lead-protocol status` reports these separately as **Product
+Version** and **Kernel Version**, including in JSON as `productVersion` and
+`kernelVersion`.
+
+Framework files remain independently versioned. A Markdown header's `Version:`
+is the revision of that document or component, while `Protocol:` compatibility
+metadata describes the supported kernel floor or range. Neither value is a
+substitute for the manifest's exact product release. On an older installation
+without a manifest, status reports Product Version as `unknown` and reads the
+kernel only from `PROTOCOL_RULES.md`.
+
+## Executable session lifecycle
+
+The optional CLI turns the boot and close contract into three commands:
+
+```bash
+npx @leadsolutions/lead-protocol@2.1.4 session open \
+  --actor judge --agent codex --topic "Try the lifecycle" --json
+
+echo "A self-contained checkpoint body" | \
+  npx @leadsolutions/lead-protocol@2.1.4 checkpoint \
+    --actor judge --agent codex --title first-checkpoint --json
+
+npx @leadsolutions/lead-protocol@2.1.4 session close \
+  --actor judge --agent codex \
+  --journal not-significant --status stable \
+  --last-action "Verified the lifecycle." --pending-step None \
+  --confirm-checklist --json
+
+# Start a clean second session. The JSON receipt includes the terminal handoff
+# from the first session under `previousHandoff`, proving immediate resume.
+npx @leadsolutions/lead-protocol@2.1.4 session open \
+  --actor judge --agent codex --topic "Resume from prior handoff" --json
+```
+
+`session open` records the active session, updates the pair handoff, and emits a
+receipt containing the canonical file order and SHA-256 hashes. `checkpoint`
+creates a UTC-named shared snapshot without overwriting peer state. `session
+close` validates the close contract and removes only the current row.
+
+Supported platforms: Windows, macOS, and Linux with Node.js 18 or newer. See
+[`cli/README.md`](cli/README.md) for all flags and judge testing instructions.
+
+### Build Week 2026 provenance
+
+Lead Protocol and its core engineering predate OpenAI Build Week. The maintainer
+used Codex as an implementation and adversarial-review partner for the public
+executable lifecycle. Codex accelerated the work by tracing each state
+transition, turning rollback and concurrency risks into focused fault-injection
+tests, and checking the packaged CLI path rather than only the happy path.
+
+The key human engineering decisions remained with the maintainer: keep the
+protocol vendor-neutral and file-based; isolate volatile state by `(actor,
+agent)`; preserve peer-owned rows; require explicit JOURNAL significance; use
+deterministic receipts; reject unconfigured pristine project state; and hold the
+review to a public-only, offline boundary.
+
+For this public-only adversarial review, **GPT-5.6 Sol (Medium)** independently
+examined `session open -> checkpoint -> session close`. Its specific Build Week
+contribution was to confirm and repair transactional rollback and
+receipt-ownership defects, strengthen peer-row preservation, and add regression
+coverage for pristine/malformed state, optimistic concurrency, and interrupted
+operations. The hardening was created after the immutable `v2.1.1` tag and is
+published in `v2.1.2`; `v2.1.1` remains unchanged and does not contain these
+fixes. The model configuration, Codex thread ID, findings, and validation
+are recorded in the [public adversarial review](docs/build-week-2026/gpt-5.6-lifecycle-review.md).
+
+**Contribution boundary:** everything that predates the Build Week submission
+period beginning on 2026-07-13 is pre-existing work and is not claimed for the
+challenge. Work added during the submission period is limited to the executable
+lifecycle (`session open`, `checkpoint`, and `session close`), its receipts,
+ownership/concurrency/rollback safeguards, lifecycle tests, package smoke
+coverage, and this provenance disclosure. The underlying protocol design,
+templates, documentation, validation/migration tooling, and earlier CLI
+commands remain pre-existing work.
 
 ## Installing a specific version
 
@@ -239,6 +321,12 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
+| **2.1.4** | Adds explicit installed product/kernel identity through `.agents/manifest.json`, corrects human and JSON status reporting with a safe legacy fallback, and reconciles branch-ordering prose with the backward-compatible eight-item handoff checklist. Kernel 2.0.2; git-substrate module 1.2.2. |
+| **2.1.3** | Corrects generic AI branch provenance across the source scaffold and the npm-installed CLI template: AI branches use the mapped `<agent-slug>/<description>` convention, package smoke coverage verifies the installed `init` output, and CLI CI now runs whenever bundled scaffold inputs change. |
+| **2.1.2** | Publishes the Codex/GPT-5.6 transactional hardening from public PR #34: validate close fields before mutation, serialize cooperating lifecycle operations, strengthen receipt ownership and rollback, preserve peer rows byte-for-byte, and prevent live source state from leaking into packaged templates. |
+| **2.1.1** | Completes the lifecycle acceptance contract: human-readable resume context, deterministic malformed-state and interrupted-close rollback tests, hosted macOS coverage, and a package smoke test that proves continuation across two clean sessions. |
+| **2.1.0** | **Build Week executable lifecycle.** Adds `session open`, `checkpoint`, and `session close`, deterministic SHA-256 boot receipts, optimistic peer-safe registry mutation, guarded terminal handoffs, unit tests, and package-install smoke coverage. |
+| **2.0.4** | **Branch ordering rule (kernel 2.0.1).** Adds an explicit rule (PROTOCOL_RULES §P3) requiring session-close state to be committed on the feature branch before the PR is opened, not written to the default branch after merge. Adds §M-git-6 to `git-substrate.md` with git-specific enforcement and a reviewer signal for post-merge closeout PRs. The proof is derived from git/PR state; the persisted handoff schema remains the existing eight-item checklist. Fixes #2. |
 | **2.0.3** | Security patch: `migrate_to_v2.py` now validates `--actor` / `--agent` values against path traversal (rejects `..`, `/`, `\`, absolute paths, drive letters). README Quick Start updated to current release with PowerShell copy block added. `SECURITY.md` and `CONTRIBUTING.md` scope corrected (CLI/MCP are roadmap, not shipped). CI workflow permissions hardened. No kernel or schema changes. |
 | **2.0.2** | Documentation and release infrastructure fixes. README version references corrected. No kernel or schema changes. |
 | **2.0.1** | Patch from first external consumer feedback. `migrate_to_v2.py --dry-run` now accepted; pristine `LESSONS.md` scaffold no longer false-positives the rerun-safety guard; `docs/MIGRATION-v2.md` Step 3 rewritten with agent-driven callout and `--agent` slug warning. No kernel or schema changes. |
@@ -269,7 +357,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Priority | Component | Status |
 |---|---|---|
-| **P1** | CLI (`lead-protocol init / handoff / validate`) | Planned |
+| **P1** | CLI (`init`, `handoff`, `status`, `validate`, and session lifecycle) | ✅ Shipped in v2.1.2 |
 | **P1** | JSON Schemas for `handoff.md` and `decisions.jsonl` | ✅ Shipped in v1.8.1 |
 | **P1** | Pre-commit hook for schema enforcement | ✅ Shipped in v1.8.2 |
 | **P2** | MCP Server (protocol operations as MCP tools) | Planned |
