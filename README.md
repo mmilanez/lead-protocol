@@ -4,7 +4,7 @@
 
 When one AI coding session ends, it records what it did, what remains, and why it made the calls it made. The next session — in the same tool or a different one, minutes or days later — can read that state and continue from there.
 
-> Current version: **2.4.0**
+> Current version: **2.5.0**
 
 This version identifies the stable release represented by this source. For an
 installation, use a published release and confirm its package is available;
@@ -66,6 +66,7 @@ your-project/
 │   │   └── decisions.entry.schema.json  # Validates one decisions.jsonl line
 │   ├── scripts/
 │   │   ├── validate_state.py            # Schema validator
+│   │   ├── check_git_state.py           # Optional Git working-tree check
 │   │   ├── migrate_to_v2.py             # v1.x → v2.0.0 migration tool
 │   │   ├── conftest.py                  # Pytest config
 │   │   └── test_validate_state.py       # Validator tests
@@ -120,26 +121,26 @@ enforces agent instructions.
 
 ```bash
 cd your-project
-npx --yes @leadsolutions/lead-protocol@2.4.0 init
+npx --yes @leadsolutions/lead-protocol@2.5.0 init
 
 # Set your project's identity
 $EDITOR .agents/PROJECT_RULES.md
 
 # Verify the scaffold state
-npx --yes @leadsolutions/lead-protocol@2.4.0 validate
+npx --yes @leadsolutions/lead-protocol@2.5.0 validate
 ```
 
 **Windows (PowerShell):**
 
 ```powershell
 Set-Location your-project
-npx --yes @leadsolutions/lead-protocol@2.4.0 init
+npx --yes @leadsolutions/lead-protocol@2.5.0 init
 
 # Set your project's identity
 code .agents/PROJECT_RULES.md
 
 # Verify the scaffold state
-npx --yes @leadsolutions/lead-protocol@2.4.0 validate
+npx --yes @leadsolutions/lead-protocol@2.5.0 validate
 ```
 
 The CLI installs sanitized project seeds and creates a missing knowledge map
@@ -267,14 +268,14 @@ and `protocolVersion` remains a deprecated compatibility alias of `kernelVersion
 The optional CLI turns the boot and close contract into three commands:
 
 ```bash
-npx @leadsolutions/lead-protocol@2.4.0 session open \
+npx @leadsolutions/lead-protocol@2.5.0 session open \
   --actor judge --agent codex --topic "Try the lifecycle" --json
 
 echo "A self-contained checkpoint body" | \
-  npx @leadsolutions/lead-protocol@2.4.0 checkpoint \
+  npx @leadsolutions/lead-protocol@2.5.0 checkpoint \
     --actor judge --agent codex --title first-checkpoint --json
 
-npx @leadsolutions/lead-protocol@2.4.0 session close \
+npx @leadsolutions/lead-protocol@2.5.0 session close \
   --actor judge --agent codex \
   --journal not-significant --status stable \
   --last-action "Verified the lifecycle." --pending-step None \
@@ -282,7 +283,7 @@ npx @leadsolutions/lead-protocol@2.4.0 session close \
 
 # Start a clean second session. The JSON receipt includes the terminal handoff
 # from the first session under `previousHandoff`, proving immediate resume.
-npx @leadsolutions/lead-protocol@2.4.0 session open \
+npx @leadsolutions/lead-protocol@2.5.0 session open \
   --actor judge --agent codex --topic "Resume from prior handoff" --json
 ```
 
@@ -335,8 +336,8 @@ Use the CLI's framework update command to retain project rules, decisions, sessi
 history and actor-local state:
 
 ```bash
-npx --yes @leadsolutions/lead-protocol@2.4.0 update --dry-run
-npx --yes @leadsolutions/lead-protocol@2.4.0 update --yes
+npx --yes @leadsolutions/lead-protocol@2.5.0 update --dry-run
+npx --yes @leadsolutions/lead-protocol@2.5.0 update --yes
 ```
 
 `init` is for new installations. It refuses any existing `.agents` entry unless
@@ -386,6 +387,11 @@ release and versioned
 work and is not an installed release identifier.
 
 ### Release notes and migration
+
+Existing v2.x adopters: see the [append-only state adoption addendum](docs/MIGRATION-v2.md#v2x-adoption-addendum-append-only-state)
+for preserving history, integrating union attributes and checking local Git
+state. The optional `check_git_state.py` helper is included in v2.5.0;
+the portable validator remains independent of Git.
 
 - **Changelog:** [`CHANGELOG.md`](CHANGELOG.md) — release-by-release summary of what changed.
 - **v1.x → v2.0.0 migration:** [`docs/MIGRATION-v2.md`](docs/MIGRATION-v2.md) — required reading for consumer repos upgrading from any `v1.x` release.
@@ -471,6 +477,7 @@ Patch bumps (Z) never break anything. Minor bumps (Y) may introduce new features
 
 | Version | Highlights |
 |---|---|
+| **2.5.0** | Optional Git-aware detection of uncommitted default-branch shared logs, explicit skip/error outcomes, and v2.x adoption guidance. Kernel remains 2.2.0; existing schemas and portable validation are unchanged. |
 | **2.4.0** | Project knowledge map, create-only INDEX installation, Unicode-safe history lookup, pristine project seeds, and instruction-only first-run setup (`§P10`). Kernel 2.2.0; CORE 1.7.0; meta-repo 1.2.0; PROJECT_RULES 2.1.0. |
 | **2.3.0** | Optional execution evidence, primary product status, concurrent worktree guidance, and bounded append-only integrity/union handling. Kernel 2.1.1; git-substrate 1.4.0. |
 | **2.2.0** | Adds state-preserving CLI `update`, refuses accidental reinitialization of existing projects, and validates static path hazards before writes (#50, building on #26; addresses #25 and #40). Kernel remains 2.0.2. |

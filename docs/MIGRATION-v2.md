@@ -380,6 +380,96 @@ design drafts, experimental logs — is left in place. Decide per-file whether
 to move it into the v2 layout (`.agents/checkpoints/` is often the right
 target for design drafts) or into your project's `docs/`.
 
+## v2.x adoption addendum: append-only state
+
+This section also applies to existing **v2.x consumers**. It is not another
+v1-to-v2 layout migration: do not rerun `migrate_to_v2.py` on an already migrated
+project. Portable integrity checks and union attributes were delivered in
+v2.3.0. The optional Git working-directory checker described below is included
+in v2.5.0. It is not present in v2.4.0 or earlier packages.
+
+### Universal adoption (every substrate)
+
+Follow `PROTOCOL_RULES.md §P3`, *Integrity invariants*, regardless of Git or
+active modules. Preserve the original header/preamble and previous entries;
+correct history by appending a new entry that identifies what it supersedes.
+Append-only files must end in a newline. `JOURNAL.md` and `LESSONS.md` must have
+one top-level header; unresolved conflict markers block further appends.
+
+Before upgrading, preserve a backup of project rules, shared history, decisions,
+agent map, session registry and all per-pair state. Replace only the released
+framework files and manifest; never replace populated project files with
+template seeds. Inspect existing logs with the new validator before applying
+the upgrade. If a legacy migration left multiple top-level headers or another
+historical incompatibility, stop for an explicit, auditable repair decision;
+do not silently rewrite history or suppress validation errors. Preserve the
+original bytes in a backup before an approved repair. When only a final newline
+is missing, append that newline without changing the existing byte prefix.
+
+Run the portable validator against the actual files after adoption:
+
+```text
+python .agents/scripts/validate_state.py
+```
+
+Resolve failures before new appends. Validation checks structural symptoms; it
+does not prove semantic completeness, truthful evidence or lossless merging.
+The generic validator requires Python/jsonschema and has no Git dependency.
+
+### Git consumers (optional git-substrate adoption)
+
+1. Coordinate the integration branch and active writers. Review existing
+   attributes, hooks and ignore rules first. Preserve all unrelated settings.
+2. Integrate the three released union attributes **before** merging other
+   branches with concurrent appends. The shipped file is
+   `.agents/.gitattributes`; its paths are relative to `.agents/`:
+
+   ```gitattributes
+   JOURNAL.md merge=union
+   LESSONS.md merge=union
+   decisions.jsonl merge=union
+   ```
+
+   Merge these entries into an existing file rather than overwriting it.
+   Do not add union attributes for `sessions/active_sessions.md`, `local/**`
+   or rules: these are mutable or private, not shared append-only logs.
+3. Normalize missing trailing newlines by append only. Commit the attributes
+   and reviewed normalization through the project's integration workflow.
+4. Rebase or merge each active feature branch onto that integrated commit
+   before combining appends. Verify effective attributes (more-specific or
+   local attributes can override the tracked file):
+
+   ```text
+   git check-attr merge -- .agents/decisions.jsonl .agents/JOURNAL.md .agents/LESSONS.md .agents/sessions/active_sessions.md
+   ```
+
+   The first three must report `union`; the session registry must not. Correct
+   an unexpected override before relying on union behavior.
+5. After merges/rebases, run the portable validator and review complete entries
+   from both sides. Union is line-based with arbitrary relative order: matching
+   headings can combine entry bodies and identical JSONL records can deduplicate.
+   Distinct timestamp/actor/agent/session headings reduce collisions but do not
+   guarantee atomic entries. Inspect the source commits when a clean merge is
+   semantically suspicious. See `modules/git-substrate.md §M-git-8`.
+6. Once the checker is available in your selected framework source, explicitly
+   opt into the separate Git check at session close, for example:
+
+   ```text
+   python .agents/scripts/check_git_state.py --default-branch main
+   ```
+
+   Use the actual default branch, or omit the option when local `origin/HEAD`
+   is correct. It checks staged, unstaged, deleted, untracked and ignored shared
+   logs in the **current local working tree**. It does not inspect other clones,
+   branches' working directories or files absent from a fresh CI checkout.
+   Exit 1 means reconcile pending logs; exit 2 means inspection/configuration
+   failed. Exit 0 can mean `SKIP` (non-default branch, detached HEAD, no Git),
+   which is not clean-default-branch evidence. See
+   [checker usage](../.agents/scripts/README.md#optional-git-working-directory-check).
+
+Non-Git adopters can ignore this entire subsection and keep using the portable
+validator without Git installed.
+
 ## Getting help
 
 - Open an issue on the [lead-protocol repository](https://github.com/mmilanez/lead-protocol/issues)

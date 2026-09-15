@@ -35,10 +35,12 @@ test('setup preserves configured values and clarifies required answers', () => {
   assert.match(text, /unknown or ambiguous required answers.*clarif.*rather than guessed/i);
   assert.match(read(root, '.agents/modules/meta-repo.md'), /Mixed state[^\n]*§P10[^\n]*Name[^\n]*§J8/);
 });
-test('released setup identifies product 2.4.0 and kernel 2.2.0', () => {
-  assert.equal(JSON.parse(read(root, 'cli/package.json')).version, '2.4.0');
-  assert.equal(JSON.parse(read(root, '.agents/manifest.json')).kernel_version, '2.2.0');
-  assert.match(read(root, 'README.md'), /Current version: \*\*2\.4\.0\*\*/);
+test('current release retains the setup contract introduced in 2.4.0', () => {
+  const version = JSON.parse(read(root, 'cli/package.json')).version;
+  const manifest = JSON.parse(read(root, '.agents/manifest.json'));
+  assert.equal(manifest.product_version, version);
+  assert.equal(manifest.kernel_version, '2.2.0');
+  assert.ok(read(root, 'README.md').includes(`Current version: **${version}**`));
   assert.match(read(root, 'README.md'), /\| \*\*2\.4\.0\*\* \|.*§P10/);
 });
 for (const mode of ['direct copy', 'CLI']) test(`${mode} ships setup without source exemption and preserves configured local state on update`, t => {

@@ -13,6 +13,39 @@ re-stated here.
 
 ## [Unreleased]
 
+## [2.5.0] — 2026-09-15
+
+Kernel 2.2.0; existing framework rule and schema revisions remain unchanged.
+
+### Fixed
+
+- The bundled helper documentation links to this release's migration guide,
+  avoiding a relative link to a directory absent from initialized projects.
+- First-run regression checks track the current package identity while retaining
+  the historical v2.4.0 setup contract.
+
+### Added
+
+- An optional, read-only Git working-directory check reports uncommitted
+  `decisions.jsonl`, `JOURNAL.md` and `LESSONS.md` on the configured default
+  branch. It includes staged, unstaged, deleted, untracked and ignored logs.
+- Explicit default-branch selection or local `origin/HEAD` discovery, with
+  distinct clean, skipped, pending-state and inspection-error outcomes.
+- Existing v2.x adoption guidance for history preservation, union attribute
+  integration, active-branch reconciliation and semantic merge limitations.
+
+### Compatibility
+
+- Portable state validation remains independent of Git. The optional helper
+  uses Python's standard library and invokes Git only when explicitly run.
+- Non-default branches, detached HEAD and environments without Git report an
+  explicit skip; a skip does not prove that another default-branch working
+  directory is clean. The helper performs no writes, commits, stashes or fetches.
+- Use it at local session close or in an existing pre-push hook. Fresh CI
+  checkouts cannot inspect uncommitted work left on another machine.
+- Existing project configuration, logs and actor-local state are preserved
+  by the released updater; no handoff or decision schema migration is required.
+
 ## [2.4.0] — 2026-09-15
 
 Kernel 2.2.0; CORE 1.7.0; meta-repo 1.2.0; PROJECT_RULES 2.1.0.
