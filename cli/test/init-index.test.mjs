@@ -128,8 +128,8 @@ test('both managed pointers include discovery while preserving bytes outside man
   assert.equal(run(target, bin).status, 0);
   for (const file of ['AGENTS.md', 'CLAUDE.md']) {
     const text = readFileSync(path.join(target, file), 'utf8');
-    assert.match(text, /^before\n\n\n<lead-protocol>/);
-    assert.match(text, /<\/lead-protocol>\n\n\nafter\n$/);
+    assert.match(text, /^<lead-protocol>/);
+    assert.match(text, /<\/lead-protocol>\n\nbefore\n\n\n\n\n\nafter\n$/);
     assert.match(text, /Before answering a project question/);
     assert.match(text, /§J6/);
     assert.match(text, /§P-Access/);

@@ -13,7 +13,7 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test test/session-lifecycle.test.mjs test/status.test.mjs test/validate.test.mjs test/release-metadata.test.mjs test/updater.test.mjs test/execution-evidence.test.mjs test/evidence-cli.test.mjs test/git-merge.test.mjs test/init-index.test.mjs test/project-seeds.test.mjs test/first-run.test.mjs",
+    "test": "npm run build && node --test test/session-lifecycle.test.mjs test/status.test.mjs test/validate.test.mjs test/release-metadata.test.mjs test/updater.test.mjs test/execution-evidence.test.mjs test/evidence-cli.test.mjs test/git-merge.test.mjs test/init-index.test.mjs test/project-seeds.test.mjs test/first-run.test.mjs test/guideline-placement.test.mjs",
     "test:pack": "node scripts/test-pack.mjs",
     "sync:manifest": "node scripts/sync-manifest.mjs",
     "prepublishOnly": "npm run build"

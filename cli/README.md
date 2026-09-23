@@ -142,8 +142,14 @@ state is never scanned, seeded or written. Framework orphans are reported and
 never deleted. Partial pre-manifest installs can be repaired by update.
 
 Both init and update refresh the first complete `<lead-protocol>` block in
-`CLAUDE.md` / `AGENTS.md`, preserving every byte outside it; when no complete
-block exists they append one without trimming user content. Missing protocol
+`CLAUDE.md` / `AGENTS.md` and keep it at the top of the file, so the boot
+procedure is read first and is the part least exposed to instruction size limits
+(Codex, for example, stops reading `AGENTS.md` after a configurable byte limit).
+A block that only whitespace precedes counts as the top and is replaced in place; a block
+found lower down, for example below another tool's managed guidelines, is moved to
+the top; when no complete block exists one is prepended. User content is never
+trimmed: the only bytes removed outside the block are the `===` separator and
+final newline that earlier CLI versions wrote around an appended block. Missing protocol
 `.gitignore` entries are appended. Repeated updates skip identical files.
 Dry-run preflights these paths too and writes nothing; its per-file listing
 covers `.agents`, with INDEX seeding, guideline blocks and `.gitignore` handled on apply.
@@ -229,8 +235,13 @@ The CLI manages `CLAUDE.md` and `AGENTS.md` using XML-style tags:
 ```
 
 - **New file** → creates with the tagged block
-- **Existing file, no tags** → appends the tagged block (your content is preserved)
-- **Existing file, has tags** → replaces content between tags (idempotent)
+- **Existing file, no tags** → prepends the tagged block (your content is preserved below it)
+- **Existing file, tags at the top** → replaces content between tags (idempotent)
+- **Existing file, tags lower down** → moves the tagged block to the top (your content is preserved, including other tools' tag blocks such as `<laravel-boost-guidelines>`)
+
+The block stays first so it is read before anything else and is the least likely
+part to be cut by instruction size limits. A UTF-8 BOM, when present, remains at
+the start of the file.
 
 ## Requirements
 
