@@ -40,34 +40,25 @@ export function generateGuidelines(
   templatesDir: string,
   targetDir: string,
 ): void {
-  const claudeContent = readFileSync(
-    path.join(templatesDir, "CLAUDE.md"),
-    "utf-8",
-  );
-  const agentsContent = readFileSync(
-    path.join(templatesDir, "AGENTS.md"),
-    "utf-8",
-  );
+  for (const name of ["CLAUDE.md", "AGENTS.md"]) {
+    const dest = path.join(targetDir, name);
+    const existed = existsSync(dest);
+    const result = writeGuidelines(
+      dest,
+      readFileSync(path.join(templatesDir, name), "utf-8"),
+    );
 
-  const claudeResult = writeGuidelines(
-    path.join(targetDir, "CLAUDE.md"),
-    claudeContent,
-  );
-  const agentsResult = writeGuidelines(
-    path.join(targetDir, "AGENTS.md"),
-    agentsContent,
-  );
-
-  if (claudeResult === "replaced") {
-    ui.info("CLAUDE.md updated (existing <lead-protocol> block replaced)");
-  } else {
-    ui.success("CLAUDE.md created");
-  }
-
-  if (agentsResult === "replaced") {
-    ui.info("AGENTS.md updated (existing <lead-protocol> block replaced)");
-  } else {
-    ui.success("AGENTS.md created");
+    if (result === "replaced") {
+      ui.info(`${name} updated (existing <lead-protocol> block replaced)`);
+    } else if (result === "relocated") {
+      ui.info(`${name} updated (<lead-protocol> block moved to the top)`);
+    } else if (result === "noop") {
+      ui.info(`${name} unchanged`);
+    } else if (existed) {
+      ui.info(`${name} updated (<lead-protocol> block added at the top)`);
+    } else {
+      ui.success(`${name} created`);
+    }
   }
 }
 

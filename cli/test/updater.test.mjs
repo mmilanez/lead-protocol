@@ -202,9 +202,9 @@ for (const args of [['init', '--yes'], ['update', '--yes']]) {
     put(root, 'AGENTS.md', prefix);
     assert.equal(run(root, ...args).status, 0);
     const claude = readFileSync(path.join(root, 'CLAUDE.md'), 'utf8');
-    assert.ok(claude.startsWith(prefix), 'prefix bytes');
-    assert.ok(claude.endsWith(suffix), 'suffix bytes');
-    assert.ok(readFileSync(path.join(root, 'AGENTS.md'), 'utf8').startsWith(prefix), 'untagged content preserved');
+    assert.ok(claude.startsWith('<lead-protocol>'), 'block moved to the top');
+    assert.ok(claude.endsWith('</lead-protocol>\n\n' + prefix + suffix), 'user bytes around the old block');
+    assert.ok(readFileSync(path.join(root, 'AGENTS.md'), 'utf8').endsWith('</lead-protocol>\n\n' + prefix), 'untagged content preserved');
     const before = snapshot(root);
     assert.equal(run(root, 'update', '--yes').status, 0);
     assert.deepEqual(snapshot(root), before, 'repeat update must not rewrite identical guidelines');
